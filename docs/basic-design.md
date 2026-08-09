@@ -262,6 +262,7 @@ erDiagram
 | DELETE | `/api/transactions/{id}` | 取引の削除 |
 | GET | `/api/summary/monthly` | 月別収支サマリ取得(`year`・`month`クエリ必須) |
 | GET | `/api/reports/category-breakdown` | 月別・大カテゴリ別支出集計取得(`year`・`month`クエリ必須) |
+| GET | `/api/reports/asset-trend` | 資産全体の残高推移取得(`months`クエリで期間切替、3・6・12から指定) |
 | GET | `/api/assets` | 資産一覧取得(残高・合計資産額を含む) |
 | POST | `/api/assets` | 資産の新規登録 |
 | PUT | `/api/assets/{id}` | 資産の編集 |
@@ -274,11 +275,9 @@ erDiagram
 | GET | `/api/major-categories` | 支出大カテゴリ一覧取得(固定4件、参照のみ) |
 | GET | `/api/expense-categories` | 支出中カテゴリ一覧取得 |
 | POST | `/api/expense-categories` | 支出中カテゴリの新規登録 |
-| PUT | `/api/expense-categories/{id}` | 支出中カテゴリの編集 |
 | DELETE | `/api/expense-categories/{id}` | 支出中カテゴリの削除 |
 | GET | `/api/income-categories` | 収入カテゴリ一覧取得 |
 | POST | `/api/income-categories` | 収入カテゴリの新規登録 |
-| PUT | `/api/income-categories/{id}` | 収入カテゴリの編集 |
 | DELETE | `/api/income-categories/{id}` | 収入カテゴリの削除 |
 
 ### 4.3 リクエスト/レスポンス例
@@ -372,11 +371,10 @@ backend/
 frontend/
 ├── src/
 │   ├── app/                    # Next.js App Router(画面単位のディレクトリ)
-│   │   ├── transactions/       # 取引一覧(月別)
+│   │   ├── transactions/       # 取引一覧(月別)。カテゴリの追加・削除は取引追加・編集モーダルに統合
 │   │   ├── assets/             # 資産一覧
-│   │   ├── reports/            # レポート(カテゴリ別集計)
-│   │   ├── recurring-transactions/  # 定期取引管理
-│   │   └── categories/         # カテゴリ管理
+│   │   ├── reports/            # レポート(カテゴリ別集計・資産推移)
+│   │   └── recurring-transactions/  # 定期取引管理
 │   ├── components/             # 共通UIコンポーネント(取引追加・編集モーダル等)
 │   ├── lib/                    # APIクライアント等
 │   └── types/                  # 型定義(APIレスポンス型等)
