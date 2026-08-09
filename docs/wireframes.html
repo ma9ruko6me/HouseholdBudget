@@ -1,0 +1,857 @@
+<!doctype html>
+<title>家計簿アプリ ワイヤーフレーム</title>
+<meta charset="utf-8" />
+<style>
+  :root {
+    --bg: #f2f1ed;
+    --paper: #ffffff;
+    --line: #b9b6ac;
+    --line-soft: #d9d7cf;
+    --ink: #2b2a26;
+    --ink-muted: #7a776c;
+    --accent: #3d5a80;
+    --accent-soft: #dbe4ee;
+    --income: #4c7a52;
+    --income-soft: #dfe9df;
+    --expense: #a3453b;
+    --expense-soft: #f0dedb;
+    --tag-bg: #eceae2;
+    --nav-bg: #26241f;
+    --nav-ink: #d8d5c8;
+    --nav-ink-dim: #8b8878;
+    --font-mono: ui-monospace, "SF Mono", "Menlo", "Consolas", monospace;
+    --font-sans: ui-sans-serif, "Hiragino Sans", "Yu Gothic", "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1c1b18;
+      --paper: #242320;
+      --line: #4a4740;
+      --line-soft: #35332d;
+      --ink: #e8e6dd;
+      --ink-muted: #948f80;
+      --accent: #7fa3c9;
+      --accent-soft: #2c3a48;
+      --income: #8fbb8f;
+      --income-soft: #2a3a2b;
+      --expense: #cf8b82;
+      --expense-soft: #3c2b28;
+      --tag-bg: #322f28;
+      --nav-bg: #141310;
+      --nav-ink: #d8d5c8;
+      --nav-ink-dim: #6f6c5e;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1c1b18;
+    --paper: #242320;
+    --line: #4a4740;
+    --line-soft: #35332d;
+    --ink: #e8e6dd;
+    --ink-muted: #948f80;
+    --accent: #7fa3c9;
+    --accent-soft: #2c3a48;
+    --income: #8fbb8f;
+    --income-soft: #2a3a2b;
+    --expense: #cf8b82;
+    --expense-soft: #3c2b28;
+    --tag-bg: #322f28;
+    --nav-bg: #141310;
+    --nav-ink: #d8d5c8;
+    --nav-ink-dim: #6f6c5e;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .head {
+    padding: 28px 32px 18px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .head .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+  .head h1 {
+    margin: 4px 0 6px;
+    font-size: 22px;
+    font-weight: 700;
+    text-wrap: balance;
+  }
+  .head p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--ink-muted);
+    max-width: 65ch;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 2px;
+    padding: 0 32px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line-soft);
+    overflow-x: auto;
+  }
+  .tab {
+    appearance: none;
+    border: none;
+    background: transparent;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    color: var(--ink-muted);
+    padding: 12px 14px 10px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .tab .num {
+    color: var(--ink-muted);
+    margin-right: 6px;
+  }
+  .tab.active .num { color: var(--accent); }
+
+  main {
+    padding: 28px 32px 64px;
+    max-width: 1180px;
+  }
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  .screen-title {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .screen-title h2 { margin: 0; font-size: 17px; }
+  .screen-title .route {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-muted);
+    background: var(--tag-bg);
+    padding: 2px 7px;
+    border-radius: 3px;
+  }
+  .screen-note {
+    margin: 4px 0 18px;
+    font-size: 12.5px;
+    color: var(--ink-muted);
+    max-width: 70ch;
+  }
+
+  /* ---- app shell / low-fi frame ---- */
+  .frame {
+    display: grid;
+    grid-template-columns: 168px 1fr;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    min-height: 560px;
+    position: relative;
+  }
+  .frame-nav {
+    background: var(--nav-bg);
+    color: var(--nav-ink);
+    padding: 16px 0;
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+  .frame-nav .brand {
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    padding: 0 16px 14px;
+    color: var(--nav-ink);
+    border-bottom: 1px solid #3a382f;
+    margin-bottom: 10px;
+  }
+  .frame-nav a {
+    display: block;
+    padding: 9px 16px;
+    color: var(--nav-ink-dim);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+  }
+  .frame-nav a.current {
+    color: var(--nav-ink);
+    background: rgba(255,255,255,0.05);
+    border-left-color: var(--accent);
+  }
+  .frame-body { padding: 20px 22px; overflow: auto; }
+
+  /* ---- generic wireframe primitives ---- */
+  .wf-box {
+    border: 1px dashed var(--line);
+    border-radius: 3px;
+    background: var(--tag-bg);
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 8px;
+  }
+  .row { display: flex; gap: 12px; }
+  .col { display: flex; flex-direction: column; gap: 12px; }
+  .grow { flex: 1; }
+
+  .btn {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: default;
+  }
+  .btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--paper);
+  }
+  .btn.danger {
+    border-color: var(--expense);
+    color: var(--expense);
+    background: var(--expense-soft);
+  }
+  .btn.ghost { background: transparent; }
+
+  .pill {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: var(--tag-bg);
+    color: var(--ink-muted);
+  }
+  .pill.income { background: var(--income-soft); color: var(--income); }
+  .pill.expense { background: var(--expense-soft); color: var(--expense); }
+
+  table.wf-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+  table.wf-table th {
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    font-weight: 500;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  table.wf-table td {
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--line-soft);
+    vertical-align: middle;
+  }
+  table.wf-table tr:last-child td { border-bottom: none; }
+  .amount { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
+  .amount.income { color: var(--income); }
+  .amount.expense { color: var(--expense); }
+
+  .month-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    margin-bottom: 16px;
+  }
+  .month-nav .arrow {
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-muted);
+  }
+  .month-nav .label { font-weight: 600; font-size: 14px; }
+
+  .summary-cards { display: flex; gap: 10px; margin-bottom: 18px; }
+  .summary-card {
+    flex: 1;
+    border: 1px solid var(--line-soft);
+    border-radius: 5px;
+    padding: 10px 14px;
+    background: var(--paper);
+  }
+  .summary-card .k {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .summary-card .v {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-variant-numeric: tabular-nums;
+    margin-top: 2px;
+  }
+  .summary-card.income .v { color: var(--income); }
+  .summary-card.expense .v { color: var(--expense); }
+
+  .fab {
+    position: absolute;
+    right: 24px;
+    bottom: 24px;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--paper);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+  }
+
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+    margin: 18px 0 8px;
+  }
+  .section-label:first-child { margin-top: 0; }
+
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .field .input {
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 7px 9px;
+    font-size: 13px;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .toggle-pair { display: flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; width: fit-content; }
+  .toggle-pair span {
+    padding: 6px 16px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--ink-muted);
+  }
+  .toggle-pair span.on.expense-on { background: var(--expense-soft); color: var(--expense); }
+  .toggle-pair span.on.income-on { background: var(--income-soft); color: var(--income); }
+
+  /* modal overlay screen */
+  .modal-stage {
+    position: relative;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    min-height: 560px;
+    overflow: hidden;
+  }
+  .modal-stage .backdrop-fake {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(135deg, var(--tag-bg), var(--tag-bg) 8px, var(--bg) 8px, var(--bg) 16px);
+    opacity: 0.5;
+  }
+  .modal-card {
+    position: relative;
+    width: 420px;
+    margin: 34px auto;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+    padding: 20px;
+  }
+  .modal-card h3 { margin: 0 0 14px; font-size: 15px; }
+  .modal-actions { display: flex; justify-content: space-between; margin-top: 18px; }
+  .modal-actions .right { display: flex; gap: 8px; }
+
+  .asset-list { display: flex; flex-direction: column; gap: 10px; }
+  .asset-row {
+    display: flex; align-items: center; gap: 12px;
+    border: 1px solid var(--line-soft);
+    border-radius: 5px;
+    padding: 12px 14px;
+  }
+  .asset-row .icon {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .asset-row .name { font-weight: 600; font-size: 13.5px; }
+  .asset-row .type { font-size: 11px; color: var(--ink-muted); }
+  .asset-row .bal {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 15px;
+  }
+
+  .donut-wrap { display: flex; gap: 28px; align-items: center; }
+  .legend { display: flex; flex-direction: column; gap: 8px; font-size: 12.5px; }
+  .legend .item { display: flex; align-items: center; gap: 8px; }
+  .legend .swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  .legend .amt { margin-left: auto; font-family: var(--font-mono); font-variant-numeric: tabular-nums; padding-left: 18px; }
+
+  .icon-btn {
+    width: 22px; height: 22px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    color: var(--ink-muted);
+  }
+
+  .cat-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .cat-group { margin-bottom: 16px; }
+  .cat-group-title {
+    font-size: 12.5px; font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 8px;
+  }
+  .cat-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid var(--line-soft);
+    border-radius: 14px;
+    padding: 4px 6px 4px 12px;
+    font-size: 12px;
+    margin: 0 6px 6px 0;
+  }
+
+  /* transactions + mini report split */
+  .tx-layout { display: flex; gap: 20px; align-items: flex-start; }
+  .tx-list { flex: 0 1 560px; min-width: 0; }
+  .mini-report {
+    flex: 1;
+    min-width: 220px;
+    border: 1px solid var(--line-soft);
+    border-radius: 5px;
+    padding: 14px 16px;
+    background: var(--paper);
+  }
+  .mini-report .section-label { margin-top: 0; }
+  .mini-report .donut-sm {
+    width: 108px; height: 108px;
+    border-radius: 50%;
+    margin: 6px auto 14px;
+    border: 1px dashed var(--line);
+    background: var(--tag-bg);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-muted);
+    text-align: center;
+    padding: 6px;
+  }
+  .mini-report .legend { font-size: 11.5px; }
+  .mini-report .legend .amt { padding-left: 10px; }
+  .mini-report .view-more {
+    display: block;
+    margin-top: 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+  }
+
+  /* inline category chip picker (used inside the modal) */
+  .chip-picker { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip-picker .cat-chip {
+    cursor: default;
+    border-color: var(--line-soft);
+  }
+  .chip-picker .cat-chip.selected {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .chip-picker .cat-chip .x {
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: 10px;
+  }
+  .chip-picker .cat-chip.add-new {
+    border-style: dashed;
+    color: var(--ink-muted);
+  }
+  .major-pills { display: flex; gap: 6px; margin-bottom: 10px; }
+  .major-pills span {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    padding: 5px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--line-soft);
+    color: var(--ink-muted);
+  }
+  .major-pills span.selected {
+    background: var(--expense-soft);
+    border-color: var(--expense);
+    color: var(--expense);
+    font-weight: 600;
+  }
+
+  .report-section { margin-bottom: 28px; }
+  .report-section:last-child { margin-bottom: 0; }
+  .report-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .period-toggle { display: flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+  .period-toggle span {
+    padding: 4px 10px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--ink-muted);
+    border-right: 1px solid var(--line);
+  }
+  .period-toggle span:last-child { border-right: none; }
+  .period-toggle span.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+
+  .trend-chart {
+    width: 100%;
+    height: 200px;
+    border: 1px dashed var(--line);
+    border-radius: 4px;
+    background:
+      repeating-linear-gradient(to top, transparent, transparent 39px, var(--line-soft) 39px, var(--line-soft) 40px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-muted);
+    text-align: center;
+  }
+  .trend-legend {
+    display: flex;
+    gap: 18px;
+    margin-top: 10px;
+    font-size: 11.5px;
+    flex-wrap: wrap;
+  }
+  .trend-legend .item { display: flex; align-items: center; gap: 6px; }
+  .trend-legend .swatch-line { width: 14px; height: 2px; border-radius: 1px; }
+
+  footer.meta {
+    padding: 20px 32px 40px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-muted);
+  }
+</style>
+
+<div class="head">
+  <div class="eyebrow">Issue #5 — 画面設計</div>
+  <h1>家計簿アプリケーション ラフワイヤーフレーム</h1>
+  <p>要件定義書5章の画面案をもとに、レイアウト・表示項目・操作の認識合わせを目的とした低精度モックアップ。カテゴリ管理は取引追加・編集モーダルに統合し、単独画面としては廃止した。数値・氏名等はすべてダミーデータ。</p>
+</div>
+
+<div class="tabs" id="tabs">
+  <button class="tab active" data-screen="s1"><span class="num">01</span>取引一覧</button>
+  <button class="tab" data-screen="s2"><span class="num">02</span>取引追加・編集</button>
+  <button class="tab" data-screen="s3"><span class="num">03</span>資産一覧</button>
+  <button class="tab" data-screen="s4"><span class="num">04</span>レポート</button>
+  <button class="tab" data-screen="s5"><span class="num">05</span>定期取引管理</button>
+</div>
+
+<main>
+
+  <!-- 01 取引一覧 -->
+  <section class="screen active" id="s1">
+    <div class="screen-title"><h2>取引一覧(月別)</h2><span class="route">/transactions</span></div>
+    <p class="screen-note">メイン画面。選択月の収支サマリと取引を日付順に一覧表示する。右下の + から取引追加モーダル(画面02)を開く。取引リストを左詰めにし、空いた右側にその月のカテゴリ別レポート(ミニ版)を配置して余白を活用。</p>
+    <div class="frame">
+      <nav class="frame-nav">
+        <div class="brand">household budget</div>
+        <a class="current">取引一覧</a>
+        <a>資産一覧</a>
+        <a>レポート</a>
+        <a>定期取引管理</a>
+      </nav>
+      <div class="frame-body">
+        <div class="month-nav">
+          <div class="arrow">‹</div>
+          <div class="label">2026年8月</div>
+          <div class="arrow">›</div>
+        </div>
+        <div class="summary-cards">
+          <div class="summary-card income"><div class="k">収入合計</div><div class="v">¥312,000</div></div>
+          <div class="summary-card expense"><div class="k">支出合計</div><div class="v">¥238,450</div></div>
+          <div class="summary-card"><div class="k">収支差額</div><div class="v">¥73,550</div></div>
+        </div>
+        <div class="tx-layout">
+          <div class="tx-list">
+            <table class="wf-table">
+              <thead><tr><th>日付</th><th>カテゴリ</th><th>資産</th><th>メモ</th><th style="text-align:right">金額</th><th></th></tr></thead>
+              <tbody>
+                <tr><td>08/10</td><td><span class="pill expense">食費 / 外食</span></td><td>楽天カード</td><td>ランチ</td><td class="amount expense">-¥1,280</td><td class="icon-btn">⋯</td></tr>
+                <tr><td>08/09</td><td><span class="pill expense">固定費 / 家賃</span></td><td>住信SBI銀行</td><td></td><td class="amount expense">-¥78,000</td><td class="icon-btn">⋯</td></tr>
+                <tr><td>08/08</td><td><span class="pill income">給与</span></td><td>住信SBI銀行</td><td>8月分給与</td><td class="amount income">+¥300,000</td><td class="icon-btn">⋯</td></tr>
+                <tr><td>08/07</td><td><span class="pill expense">生活費 / 日用品</span></td><td>現金</td><td>洗剤・ティッシュ</td><td class="amount expense">-¥1,940</td><td class="icon-btn">⋯</td></tr>
+                <tr><td>08/05</td><td><span class="pill expense">娯楽費 / 映画</span></td><td>楽天カード</td><td></td><td class="amount expense">-¥1,800</td><td class="icon-btn">⋯</td></tr>
+                <tr><td>08/03</td><td><span class="pill">調整</span></td><td>現金</td><td>実残高と差分</td><td class="amount income">+¥2,000</td><td class="icon-btn">⋯</td></tr>
+                <tr><td>08/01</td><td><span class="pill expense">固定費 / 通信費</span></td><td>楽天カード</td><td>スマホ代</td><td class="amount expense">-¥4,980</td><td class="icon-btn">⋯</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mini-report">
+            <div class="section-label">今月のカテゴリ別支出</div>
+            <div class="donut-sm">DONUT<br/>(mini)</div>
+            <div class="legend">
+              <div class="item"><span class="swatch" style="background:#a3453b"></span>固定費<span class="amt">41%</span></div>
+              <div class="item"><span class="swatch" style="background:#c98a5b"></span>食費<span class="amt">26%</span></div>
+              <div class="item"><span class="swatch" style="background:#3d5a80"></span>生活費<span class="amt">17%</span></div>
+              <div class="item"><span class="swatch" style="background:#7c9070"></span>娯楽費<span class="amt">16%</span></div>
+            </div>
+            <a class="view-more">レポート画面で詳しく見る →</a>
+          </div>
+        </div>
+        <div class="fab">+</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 取引追加・編集モーダル -->
+  <section class="screen" id="s2">
+    <div class="screen-title"><h2>取引追加・編集モーダル</h2><span class="route">/transactions (modal)</span></div>
+    <p class="screen-note">取引一覧画面の上に重なる共通モーダル。新規登録・既存取引の編集どちらもこのUIを使う。編集時のみ「削除」ボタンを表示。カテゴリ選択はチップ形式にし、選択操作の延長で新規追加・削除もモーダル内で完結させる。これによりカテゴリ管理の単独画面は廃止し、カテゴリ操作はすべてこのモーダルに集約する。</p>
+    <div class="modal-stage">
+      <div class="backdrop-fake"></div>
+      <div class="modal-card">
+        <h3>取引を編集</h3>
+        <div class="col">
+          <div class="row">
+            <div class="field grow">
+              <label>日付</label>
+              <div class="input">2026-08-10</div>
+            </div>
+            <div class="field">
+              <label>区分</label>
+              <div class="toggle-pair">
+                <span class="on expense-on">支出</span>
+                <span>収入</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>大カテゴリ</label>
+            <div class="major-pills">
+              <span>固定費</span>
+              <span class="selected">食費</span>
+              <span>生活費</span>
+              <span>娯楽費</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>中カテゴリ <span style="text-transform:none;font-weight:400">(タップで選択・×で削除・+で新規追加)</span></label>
+            <div class="chip-picker">
+              <span class="cat-chip selected">外食</span>
+              <span class="cat-chip">自炊 <span class="x">×</span></span>
+              <span class="cat-chip">お菓子 <span class="x">×</span></span>
+              <span class="cat-chip add-new">+ 新規カテゴリ</span>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field grow">
+              <label>資産</label>
+              <div class="input">楽天カード</div>
+            </div>
+            <div class="field grow">
+              <label>金額</label>
+              <div class="input">¥1,280</div>
+            </div>
+          </div>
+          <div class="field">
+            <label>メモ</label>
+            <div class="input">ランチ</div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn danger">削除</button>
+          <div class="right">
+            <button class="btn ghost">キャンセル</button>
+            <button class="btn primary">保存</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="screen-note" style="margin-top:14px">※ 収入選択時は「大カテゴリ」行が非表示になり、「中カテゴリ」の位置に収入カテゴリ(給与・賞与・副収入など)のフラットなチップ一覧が同じ操作感(選択・×削除・+追加)で表示される想定。</p>
+  </section>
+
+  <!-- 03 資産一覧 -->
+  <section class="screen" id="s3">
+    <div class="screen-title"><h2>資産一覧</h2><span class="route">/assets</span></div>
+    <p class="screen-note">登録済み資産(銀行口座・現金・カード)と残高、合計資産額を表示。「残高調整」から実残高を入力すると差額が調整取引として自動登録される。</p>
+    <div class="frame">
+      <nav class="frame-nav">
+        <div class="brand">household budget</div>
+        <a>取引一覧</a>
+        <a class="current">資産一覧</a>
+        <a>レポート</a>
+        <a>定期取引管理</a>
+      </nav>
+      <div class="frame-body">
+        <div class="summary-cards">
+          <div class="summary-card" style="flex:0 0 240px"><div class="k">合計資産額</div><div class="v">¥1,842,300</div></div>
+        </div>
+        <div class="asset-list">
+          <div class="asset-row">
+            <div class="icon">銀</div>
+            <div><div class="name">住信SBI銀行</div><div class="type">銀行口座</div></div>
+            <div class="bal">¥1,203,800</div>
+            <button class="btn" style="margin-left:14px">残高調整</button>
+          </div>
+          <div class="asset-row">
+            <div class="icon">card</div>
+            <div><div class="name">楽天カード</div><div class="type">クレジットカード</div></div>
+            <div class="bal" style="color:var(--expense)">-¥86,780</div>
+            <button class="btn" style="margin-left:14px">残高調整</button>
+          </div>
+          <div class="asset-row">
+            <div class="icon">¥</div>
+            <div><div class="name">現金</div><div class="type">現金</div></div>
+            <div class="bal">¥25,280</div>
+            <button class="btn" style="margin-left:14px">残高調整</button>
+          </div>
+          <div class="asset-row">
+            <div class="icon">銀</div>
+            <div><div class="name">三菱UFJ銀行(貯蓄用)</div><div class="type">銀行口座</div></div>
+            <div class="bal">¥700,000</div>
+            <button class="btn" style="margin-left:14px">残高調整</button>
+          </div>
+        </div>
+        <div style="margin-top:16px"><button class="btn primary">+ 資産を追加</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 レポート -->
+  <section class="screen" id="s4">
+    <div class="screen-title"><h2>レポート</h2><span class="route">/reports</span></div>
+    <p class="screen-note">選択月のカテゴリ別支出に加え、資産全体の推移も同じ画面で確認できるようにした。カテゴリ別集計は月単位、資産推移は期間切替(直近3/6/12ヶ月)の折れ線グラフを想定。</p>
+    <div class="frame">
+      <nav class="frame-nav">
+        <div class="brand">household budget</div>
+        <a>取引一覧</a>
+        <a>資産一覧</a>
+        <a class="current">レポート</a>
+        <a>定期取引管理</a>
+      </nav>
+      <div class="frame-body">
+
+        <div class="report-section">
+          <div class="report-section-head">
+            <div class="section-label" style="margin:0">カテゴリ別支出</div>
+            <div class="month-nav" style="margin:0">
+              <div class="arrow">‹</div>
+              <div class="label">2026年8月</div>
+              <div class="arrow">›</div>
+            </div>
+          </div>
+          <div class="donut-wrap">
+            <div class="wf-box" style="width:180px;height:180px;border-radius:50%;border-style:solid;">DONUT CHART<br/>(大カテゴリ別 支出構成比)</div>
+            <div class="legend">
+              <div class="item"><span class="swatch" style="background:#a3453b"></span>固定費<span class="amt">¥98,000 (41%)</span></div>
+              <div class="item"><span class="swatch" style="background:#c98a5b"></span>食費<span class="amt">¥62,300 (26%)</span></div>
+              <div class="item"><span class="swatch" style="background:#3d5a80"></span>生活費<span class="amt">¥41,150 (17%)</span></div>
+              <div class="item"><span class="swatch" style="background:#7c9070"></span>娯楽費<span class="amt">¥37,000 (16%)</span></div>
+              <div class="item" style="margin-top:6px;font-weight:600">支出合計<span class="amt">¥238,450</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-head">
+            <div class="section-label" style="margin:0">資産推移</div>
+            <div class="period-toggle">
+              <span>3ヶ月</span>
+              <span class="on">6ヶ月</span>
+              <span>1年</span>
+            </div>
+          </div>
+          <div class="trend-chart">LINE CHART(資産合計・資産別の残高推移)</div>
+          <div class="trend-legend">
+            <div class="item"><span class="swatch-line" style="background:var(--ink)"></span>合計資産</div>
+            <div class="item"><span class="swatch-line" style="background:#3d5a80"></span>住信SBI銀行</div>
+            <div class="item"><span class="swatch-line" style="background:#7c9070"></span>三菱UFJ銀行(貯蓄用)</div>
+            <div class="item"><span class="swatch-line" style="background:#c98a5b"></span>楽天カード</div>
+            <div class="item"><span class="swatch-line" style="background:#a3453b"></span>現金</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 定期取引管理 -->
+  <section class="screen" id="s5">
+    <div class="screen-title"><h2>定期取引管理</h2><span class="route">/recurring-transactions</span></div>
+    <p class="screen-note">毎月自動登録される定期取引(家賃・サブスク等)の一覧・登録・編集・削除。</p>
+    <div class="frame">
+      <nav class="frame-nav">
+        <div class="brand">household budget</div>
+        <a>取引一覧</a>
+        <a>資産一覧</a>
+        <a>レポート</a>
+        <a class="current">定期取引管理</a>
+      </nav>
+      <div class="frame-body">
+        <table class="wf-table">
+          <thead><tr><th>大カテゴリ</th><th>中カテゴリ</th><th>資産</th><th>頻度</th><th>登録日</th><th style="text-align:right">金額</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>固定費</td><td>家賃</td><td>住信SBI銀行</td><td>毎月</td><td>毎月1日</td><td class="amount expense">-¥78,000</td><td class="icon-btn">✎</td></tr>
+            <tr><td>固定費</td><td>通信費</td><td>楽天カード</td><td>毎月</td><td>毎月1日</td><td class="amount expense">-¥4,980</td><td class="icon-btn">✎</td></tr>
+            <tr><td>固定費</td><td>サブスク</td><td>楽天カード</td><td>毎月</td><td>毎月5日</td><td class="amount expense">-¥1,490</td><td class="icon-btn">✎</td></tr>
+          </tbody>
+        </table>
+        <div style="margin-top:16px"><button class="btn primary">+ 定期取引を追加</button></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="meta">issue #5 / docs/wireframes.html — 実装前レビュー用のラフモックアップ。数値・口座名等はすべてダミーデータ。</footer>
+
+<script>
+  document.getElementById('tabs').addEventListener('click', (e) => {
+    const btn = e.target.closest('.tab');
+    if (!btn) return;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.screen).classList.add('active');
+  });
+</script>
