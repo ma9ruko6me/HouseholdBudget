@@ -16,7 +16,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-bg">
       <div className="grid min-h-screen grid-cols-[168px_1fr] border border-line bg-paper">
-        <nav className="bg-nav-bg py-4 font-mono text-xs text-nav-ink">
+        <nav className="bg-nav-bg py-4 font-mono text-base text-nav-ink">
           <div className="mb-2.5 border-b border-white/10 px-4 pb-3.5 tracking-wide text-nav-ink">
             household budget
           </div>

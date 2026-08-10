@@ -66,12 +66,12 @@ export default function AssetsPage() {
   return (
     <AppShell>
       <div className="mb-1 flex items-baseline gap-2.5">
-        <h2 className="text-[17px] text-ink">資産一覧</h2>
-        <span className="rounded bg-tag-bg px-1.5 py-0.5 font-mono text-[11px] text-ink-muted">
+        <h2 className="text-[21px] text-ink">資産一覧</h2>
+        <span className="rounded bg-tag-bg px-1.5 py-0.5 font-mono text-[15px] text-ink-muted">
           /assets
         </span>
       </div>
-      <p className="mb-4.5 max-w-[70ch] text-[12.5px] text-ink-muted">
+      <p className="mb-4.5 max-w-[70ch] text-[16.5px] text-ink-muted">
         登録済み資産(銀行口座・現金・カード)と残高、合計資産額を表示。「残高調整」から実際の残高を入力すると差額が調整取引として自動登録される。
       </p>
 
@@ -82,7 +82,7 @@ export default function AssetsPage() {
         <>
           <div className="mb-4.5 flex gap-2.5">
             <div className="flex-none basis-[240px] rounded border border-line-soft bg-paper px-3.5 py-2.5">
-              <div className="font-mono text-[10.5px] tracking-wide text-ink-muted uppercase">
+              <div className="font-mono text-[14.5px] tracking-wide text-ink-muted uppercase">
                 合計資産額
               </div>
               <div className="mt-0.5 font-mono text-lg text-ink tabular-nums">
@@ -101,33 +101,33 @@ export default function AssetsPage() {
                   {ASSET_ICON_LABELS[asset.type]}
                 </div>
                 <div>
-                  <div className="text-[13.5px] font-semibold text-ink">
+                  <div className="text-[17.5px] font-semibold text-ink">
                     {asset.name}
                   </div>
-                  <div className="text-[11px] text-ink-muted">
+                  <div className="text-[15px] text-ink-muted">
                     {ASSET_TYPE_LABELS[asset.type]}
                   </div>
                 </div>
-                <div className="ml-auto font-mono text-[15px] text-ink tabular-nums">
+                <div className="ml-auto font-mono text-[19px] text-ink tabular-nums">
                   ¥{Number(asset.balance).toLocaleString()}
                 </div>
                 <button
                   type="button"
-                  className="ml-3.5 rounded border border-line bg-paper px-3 py-1.5 font-mono text-[11.5px] text-ink"
+                  className="ml-3.5 rounded border border-line bg-paper px-3 py-1.5 font-mono text-[15.5px] text-ink"
                   onClick={() => setAdjustTarget(asset)}
                 >
                   残高調整
                 </button>
                 <button
                   type="button"
-                  className="rounded border border-line bg-paper px-3 py-1.5 font-mono text-[11.5px] text-ink"
+                  className="rounded border border-line bg-paper px-3 py-1.5 font-mono text-[15.5px] text-ink"
                   onClick={() => setFormModal({ mode: 'edit', asset })}
                 >
                   編集
                 </button>
                 <button
                   type="button"
-                  className="rounded border border-expense bg-expense-soft px-3 py-1.5 font-mono text-[11.5px] text-expense"
+                  className="rounded border border-expense bg-expense-soft px-3 py-1.5 font-mono text-[15.5px] text-expense"
                   onClick={() => {
                     setDeleteError(null);
                     setDeleteTarget(asset);
@@ -145,7 +145,7 @@ export default function AssetsPage() {
           <div className="mt-4">
             <button
               type="button"
-              className="rounded border border-accent bg-accent px-3 py-1.5 font-mono text-[11.5px] text-paper"
+              className="rounded border border-accent bg-accent px-3 py-1.5 font-mono text-[15.5px] text-paper"
               onClick={() => setFormModal({ mode: 'create' })}
             >
               + 資産を追加

@@ -51,13 +51,13 @@ export function AssetFormModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4">
       <div className="w-full max-w-[420px] rounded-md border border-line bg-paper p-5 shadow-lg">
-        <h3 className="mb-3.5 text-[15px] font-semibold text-ink">
+        <h3 className="mb-3.5 text-[19px] font-semibold text-ink">
           {mode === 'create' ? '資産の新規登録' : '資産の編集'}
         </h3>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
             <label
-              className="font-mono text-[10.5px] tracking-wide text-ink-muted uppercase"
+              className="font-mono text-[14.5px] tracking-wide text-ink-muted uppercase"
               htmlFor="asset-name"
             >
               資産名
@@ -73,7 +73,7 @@ export function AssetFormModal({
           </div>
           <div className="flex flex-col gap-1">
             <label
-              className="font-mono text-[10.5px] tracking-wide text-ink-muted uppercase"
+              className="font-mono text-[14.5px] tracking-wide text-ink-muted uppercase"
               htmlFor="asset-type"
             >
               種別
@@ -94,7 +94,7 @@ export function AssetFormModal({
           {mode === 'create' && (
             <div className="flex flex-col gap-1">
               <label
-                className="font-mono text-[10.5px] tracking-wide text-ink-muted uppercase"
+                className="font-mono text-[14.5px] tracking-wide text-ink-muted uppercase"
                 htmlFor="asset-balance"
               >
                 初期残高
@@ -113,7 +113,7 @@ export function AssetFormModal({
           <div className="mt-1 flex justify-end gap-2">
             <button
               type="button"
-              className="rounded border border-line bg-paper px-3 py-1.5 font-mono text-[11.5px] text-ink"
+              className="rounded border border-line bg-paper px-3 py-1.5 font-mono text-[15.5px] text-ink"
               onClick={onClose}
               disabled={submitting}
             >
@@ -121,7 +121,7 @@ export function AssetFormModal({
             </button>
             <button
               type="submit"
-              className="rounded border border-accent bg-accent px-3 py-1.5 font-mono text-[11.5px] text-paper disabled:opacity-50"
+              className="rounded border border-accent bg-accent px-3 py-1.5 font-mono text-[15.5px] text-paper disabled:opacity-50"
               disabled={submitting}
             >
               {submitting ? '送信中...' : '保存'}

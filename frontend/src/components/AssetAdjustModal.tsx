@@ -32,7 +32,7 @@ export function AssetAdjustModal({ asset, onSubmit, onClose }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4">
       <div className="w-full max-w-[420px] rounded-md border border-line bg-paper p-5 shadow-lg">
-        <h3 className="mb-3.5 text-[15px] font-semibold text-ink">
+        <h3 className="mb-3.5 text-[19px] font-semibold text-ink">
           残高調整: {asset.name}
         </h3>
 
@@ -52,7 +52,7 @@ export function AssetAdjustModal({ asset, onSubmit, onClose }: Props) {
             <div className="flex justify-end">
               <button
                 type="button"
-                className="rounded border border-accent bg-accent px-3 py-1.5 font-mono text-[11.5px] text-paper"
+                className="rounded border border-accent bg-accent px-3 py-1.5 font-mono text-[15.5px] text-paper"
                 onClick={onClose}
               >
                 閉じる
@@ -66,7 +66,7 @@ export function AssetAdjustModal({ asset, onSubmit, onClose }: Props) {
             </p>
             <div className="flex flex-col gap-1">
               <label
-                className="font-mono text-[10.5px] tracking-wide text-ink-muted uppercase"
+                className="font-mono text-[14.5px] tracking-wide text-ink-muted uppercase"
                 htmlFor="actual-balance"
               >
                 実際の残高
@@ -84,7 +84,7 @@ export function AssetAdjustModal({ asset, onSubmit, onClose }: Props) {
             <div className="mt-1 flex justify-end gap-2">
               <button
                 type="button"
-                className="rounded border border-line bg-paper px-3 py-1.5 font-mono text-[11.5px] text-ink"
+                className="rounded border border-line bg-paper px-3 py-1.5 font-mono text-[15.5px] text-ink"
                 onClick={onClose}
                 disabled={submitting}
               >
@@ -92,7 +92,7 @@ export function AssetAdjustModal({ asset, onSubmit, onClose }: Props) {
               </button>
               <button
                 type="submit"
-                className="rounded border border-accent bg-accent px-3 py-1.5 font-mono text-[11.5px] text-paper disabled:opacity-50"
+                className="rounded border border-accent bg-accent px-3 py-1.5 font-mono text-[15.5px] text-paper disabled:opacity-50"
                 disabled={submitting}
               >
                 {submitting ? '送信中...' : '調整する'}
