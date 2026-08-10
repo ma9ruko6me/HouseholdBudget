@@ -1,13 +1,69 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@import 'tailwindcss';
+
+/*
+ * デザイントークンは docs/wireframes.html で決定した配色・タイポグラフィに準拠する。
+ */
+@theme {
+  --color-bg: #f2f1ed;
+  --color-paper: #ffffff;
+  --color-line: #b9b6ac;
+  --color-line-soft: #d9d7cf;
+  --color-ink: #2b2a26;
+  --color-ink-muted: #7a776c;
+  --color-accent: #3d5a80;
+  --color-accent-soft: #dbe4ee;
+  --color-income: #4c7a52;
+  --color-income-soft: #dfe9df;
+  --color-expense: #a3453b;
+  --color-expense-soft: #f0dedb;
+  --color-tag-bg: #eceae2;
+  --color-nav-bg: #26241f;
+  --color-nav-ink: #d8d5c8;
+  --color-nav-ink-dim: #8b8878;
+
+  --font-sans:
+    ui-sans-serif, 'Hiragino Sans', 'Yu Gothic', 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Menlo', 'Consolas', monospace;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not([data-theme='light']) {
+    --color-bg: #1c1b18;
+    --color-paper: #242320;
+    --color-line: #4a4740;
+    --color-line-soft: #35332d;
+    --color-ink: #e8e6dd;
+    --color-ink-muted: #948f80;
+    --color-accent: #7fa3c9;
+    --color-accent-soft: #2c3a48;
+    --color-income: #8fbb8f;
+    --color-income-soft: #2a3a2b;
+    --color-expense: #cf8b82;
+    --color-expense-soft: #3c2b28;
+    --color-tag-bg: #322f28;
+    --color-nav-bg: #141310;
+    --color-nav-ink: #d8d5c8;
+    --color-nav-ink-dim: #6f6c5e;
   }
+}
+
+:root[data-theme='dark'] {
+  --color-bg: #1c1b18;
+  --color-paper: #242320;
+  --color-line: #4a4740;
+  --color-line-soft: #35332d;
+  --color-ink: #e8e6dd;
+  --color-ink-muted: #948f80;
+  --color-accent: #7fa3c9;
+  --color-accent-soft: #2c3a48;
+  --color-income: #8fbb8f;
+  --color-income-soft: #2a3a2b;
+  --color-expense: #cf8b82;
+  --color-expense-soft: #3c2b28;
+  --color-tag-bg: #322f28;
+  --color-nav-bg: #141310;
+  --color-nav-ink: #d8d5c8;
+  --color-nav-ink-dim: #6f6c5e;
 }
 
 html {
@@ -22,19 +78,15 @@ body {
 
 body {
   min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--color-ink);
+  background: var(--color-bg);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 * {
   box-sizing: border-box;
-  padding: 0;
-  margin: 0;
 }
 
 a {
@@ -43,7 +95,11 @@ a {
 }
 
 @media (prefers-color-scheme: dark) {
-  html {
+  html:not([data-theme='light']) {
     color-scheme: dark;
   }
+}
+
+html[data-theme='dark'] {
+  color-scheme: dark;
 }
