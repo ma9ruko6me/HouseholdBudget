@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+# EC2起動時にTerraform(user_data)から自動実行されるセットアップ・デプロイスクリプト。
+# アプリ実行に必要なミドルウェア(uv/Node/nginx)の導入と、
+# backend/frontendのビルド・起動までを自動で行う。
+# user_dataはroot権限で実行されるためsudoは不要。
+#
+# テンプレート変数はTerraform(ec2.tf)のtemplatefile()から渡される。
+
+set -eux
+
+# --- ミドルウェア導入 ---
+dnf install -y nodejs22 nodejs22-npm git nginx
+systemctl enable --now nginx
+
+# --- swap追加(t3.micro/1GBメモリでのビルド対策) ---
+if [ ! -f /swapfile ]; then
+  fallocate -l 1G /swapfile
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile
+  echo '/swapfile none swap sw 0 0' >> /etc/fstab
+fi
+
+# --- uv導入(dnfのシステムPythonに依存せず、uvにPython 3.12自体を管理させる) ---
+curl -LsSf https://astral.sh/uv/install.sh | sh
+UV=/root/.local/bin/uv
+
+# --- アプリ取得 ---
+APP_DIR=/opt/householdbudget
+rm -rf "$APP_DIR/src"
+mkdir -p "$APP_DIR"
+git clone --branch '${repo_ref}' --depth 1 '${repo_url}' "$APP_DIR/src"
+
+# --- バックエンドのセットアップ・マイグレーション ---
+BACKEND_DIR="$APP_DIR/src/backend"
+cd "$BACKEND_DIR"
+"$UV" sync --no-dev
+
+cat > /etc/householdbudget-backend.env <<EOF
+DATABASE_URL=${database_url}
+EOF
+chmod 600 /etc/householdbudget-backend.env
+
+set -a
+source /etc/householdbudget-backend.env
+set +a
+"$UV" run --project "$BACKEND_DIR" alembic upgrade head
+
+# --- バックエンドの起動(systemd) ---
+cat > /etc/systemd/system/householdbudget-backend.service <<EOF
+[Unit]
+Description=HouseholdBudget backend (FastAPI/uvicorn)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=$BACKEND_DIR
+EnvironmentFile=/etc/householdbudget-backend.env
+ExecStart=$UV run --project $BACKEND_DIR uvicorn app.main:app --host 127.0.0.1 --port 8000
+Restart=on-failure
+User=root
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable --now householdbudget-backend
+
+# --- フロントエンドのビルド ---
+cd "$APP_DIR/src/frontend"
+npm ci
+NEXT_PUBLIC_API_BASE_URL="" npm run build
+
+rm -rf /usr/share/nginx/html/*
+cp -r out/* /usr/share/nginx/html/
+
+# --- Nginx設定(静的ファイル配信 + /apiリバースプロキシ) ---
+cat > /etc/nginx/nginx.conf <<'EOF'
+user nginx;
+worker_processes auto;
+error_log /var/log/nginx/error.log notice;
+pid /run/nginx.pid;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    sendfile            on;
+    tcp_nopush          on;
+    keepalive_timeout   65;
+
+    server {
+        listen       80;
+        listen       [::]:80;
+        server_name  _;
+        root         /usr/share/nginx/html;
+
+        location /api/ {
+            proxy_pass http://127.0.0.1:8000;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+        }
+
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
+    }
+}
+EOF
+
+nginx -t
+systemctl reload nginx

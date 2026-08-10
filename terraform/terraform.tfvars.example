@@ -1,0 +1,6 @@
+aws_region    = "ap-northeast-1"
+project_name  = "householdbudget"
+instance_type = "t3.micro"
+
+# CGNAT等でグローバルIPが変動する場合は "0.0.0.0/0" のままでよい。絞り込む場合は自分のグローバルIP(例: "203.0.113.10/32")を指定する
+allowed_cidr = "0.0.0.0/0"

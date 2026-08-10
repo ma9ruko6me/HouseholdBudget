@@ -14,3 +14,12 @@ frontend/.env*.local
 
 # OS
 .DS_Store
+
+# terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/generated/
+terraform/*.tfplan
+terraform/tfplan.out
+terraform/terraform.tfvars
