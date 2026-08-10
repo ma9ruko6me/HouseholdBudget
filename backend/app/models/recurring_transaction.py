@@ -19,10 +19,10 @@ class RecurringTransaction(Base):
         ForeignKey("major_categories.id"), nullable=True
     )
     expense_category_id: Mapped[int | None] = mapped_column(
-        ForeignKey("expense_categories.id"), nullable=True
+        ForeignKey("expense_categories.id", ondelete="SET NULL"), nullable=True
     )
     income_category_id: Mapped[int | None] = mapped_column(
-        ForeignKey("income_categories.id"), nullable=True
+        ForeignKey("income_categories.id", ondelete="SET NULL"), nullable=True
     )
     asset_id: Mapped[int] = mapped_column(ForeignKey("assets.id"), nullable=False)
     day_of_month: Mapped[int] = mapped_column(nullable=False)
