@@ -1,19 +1,8 @@
-from datetime import date as date_type
 from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-
-class AdjustmentTransactionRead(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: int
-    date: date_type
-    amount: Decimal
-    entry_kind: str
-    entry_type: str
-    asset_id: int
-    memo: str | None
+from app.schemas.transaction import TransactionRead
 
 
 class AssetRead(BaseModel):
@@ -48,4 +37,4 @@ class AssetAdjust(BaseModel):
 
 class AssetAdjustResult(BaseModel):
     asset: AssetRead
-    transaction: AdjustmentTransactionRead | None
+    transaction: TransactionRead | None

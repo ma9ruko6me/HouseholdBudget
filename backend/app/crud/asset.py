@@ -54,6 +54,11 @@ def delete_asset(db: Session, asset: Asset) -> None:
     db.commit()
 
 
+def apply_balance_delta(db: Session, asset: Asset, delta: Decimal) -> None:
+    asset.balance = asset.balance + delta
+    db.flush()
+
+
 def adjust_asset_balance(db: Session, asset: Asset, actual_balance: Decimal) -> Transaction | None:
     diff = actual_balance - asset.balance
     if diff == 0:
