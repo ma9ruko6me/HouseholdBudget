@@ -50,6 +50,11 @@ def create_transaction(
     payload: TransactionCreate, db: Session = Depends(get_db)
 ) -> TransactionRead:
     asset = _get_asset_or_400(db, payload.asset_id)
+    transfer_to_asset = (
+        _get_asset_or_400(db, payload.transfer_to_asset_id)
+        if payload.transfer_to_asset_id is not None
+        else None
+    )
     try:
         return transaction_crud.create_transaction(
             db,
@@ -61,6 +66,7 @@ def create_transaction(
             expense_category_id=payload.expense_category_id,
             income_category_id=payload.income_category_id,
             memo=payload.memo,
+            transfer_to_asset=transfer_to_asset,
         )
     except IntegrityError as exc:
         db.rollback()
@@ -76,6 +82,11 @@ def update_transaction(
 ) -> TransactionRead:
     transaction = _get_transaction_or_404(db, transaction_id)
     asset = _get_asset_or_400(db, payload.asset_id)
+    transfer_to_asset = (
+        _get_asset_or_400(db, payload.transfer_to_asset_id)
+        if payload.transfer_to_asset_id is not None
+        else None
+    )
     try:
         return transaction_crud.update_transaction(
             db,
@@ -88,6 +99,7 @@ def update_transaction(
             expense_category_id=payload.expense_category_id,
             income_category_id=payload.income_category_id,
             memo=payload.memo,
+            transfer_to_asset=transfer_to_asset,
         )
     except IntegrityError as exc:
         db.rollback()

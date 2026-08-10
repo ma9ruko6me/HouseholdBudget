@@ -95,6 +95,7 @@ erDiagram
     income_categories ||--o{ transactions : "categorizes"
     assets ||--o{ recurring_transactions : "uses"
     assets ||--o{ transactions : "uses"
+    assets ||--o{ transactions : "transfers to"
 
     major_categories {
         int id PK
@@ -129,6 +130,7 @@ erDiagram
         int expense_category_id FK
         int income_category_id FK
         int asset_id FK
+        int transfer_to_asset_id FK
         string memo
         datetime created_at
         datetime updated_at
@@ -204,19 +206,21 @@ erDiagram
 |---------|-----|------|------|
 | id | INT | PK, AUTO_INCREMENT | |
 | date | DATE | NOT NULL | 取引日 |
-| amount | DECIMAL(12,0) | NOT NULL | 金額(正の値のみ。収入/支出は`entry_kind`で区別) |
-| entry_kind | ENUM('income','expense') | NOT NULL | 収入/支出区分 |
+| amount | DECIMAL(12,0) | NOT NULL | 金額(正の値のみ。収入/支出/振替は`entry_kind`で区別) |
+| entry_kind | ENUM('income','expense','transfer') | NOT NULL | 収入/支出/振替区分 |
 | entry_type | ENUM('normal','adjustment') | NOT NULL, DEFAULT 'normal' | 登録種別(通常入力/資産残高調整による自動登録) |
 | major_category_id | INT | NULL, FK → major_categories.id | 大カテゴリ(`entry_kind='expense'`時のみ設定) |
 | expense_category_id | INT | NULL, FK → expense_categories.id | 支出中カテゴリ(`entry_kind='expense'`時のみ設定) |
 | income_category_id | INT | NULL, FK → income_categories.id | 収入カテゴリ(`entry_kind='income'`時のみ設定) |
-| asset_id | INT | NOT NULL, FK → assets.id | 紐づく資産 |
+| asset_id | INT | NOT NULL, FK → assets.id | 紐づく資産(振替の場合は移動元) |
+| transfer_to_asset_id | INT | NULL, FK → assets.id | 振替の移動先資産(`entry_kind='transfer'`時のみ設定) |
 | memo | VARCHAR(255) | NULL | メモ |
 | created_at | DATETIME | NOT NULL | 作成日時 |
 | updated_at | DATETIME | NOT NULL | 更新日時 |
 
-- `entry_kind='expense'`のとき`expense_category_id`必須・`income_category_id`はNULL、`entry_kind='income'`のとき逆、をアプリケーション層(Pydanticバリデーション)で保証する
+- `entry_kind='expense'`のとき`expense_category_id`必須・`income_category_id`はNULL、`entry_kind='income'`のとき逆、`entry_kind='transfer'`のときは大カテゴリ・支出中カテゴリ・収入カテゴリすべてNULLで`transfer_to_asset_id`必須(`asset_id`と異なる資産)、をアプリケーション層(Pydanticバリデーション)で保証する
 - `entry_type='adjustment'`の行は資産残高調整時にアプリケーションが自動生成する(要件定義書 3.4参照)。カテゴリは初期状態でNULLとし、後から他の取引と同様に編集できる
+- 振替(`entry_kind='transfer'`)は移動元資産の残高を減算・移動先資産の残高を加算する。月別収支サマリの収入合計・支出合計、カテゴリ別支出集計には含めない(要件定義書 3.4参照)
 - 月別一覧表示のため`date`にINDEXを張る
 
 #### recurring_transactions(定期取引)

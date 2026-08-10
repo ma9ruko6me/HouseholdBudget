@@ -95,9 +95,7 @@ def test_category_breakdown_groups_expense_by_major_category(
     )
     db_session.commit()
 
-    response = client.get(
-        "/api/reports/category-breakdown", params={"year": 2031, "month": 1}
-    )
+    response = client.get("/api/reports/category-breakdown", params={"year": 2031, "month": 1})
 
     assert response.status_code == 200
     body = response.json()
@@ -108,9 +106,7 @@ def test_category_breakdown_groups_expense_by_major_category(
 
 
 def test_category_breakdown_empty_month_returns_empty_items(client: TestClient) -> None:
-    response = client.get(
-        "/api/reports/category-breakdown", params={"year": 2030, "month": 1}
-    )
+    response = client.get("/api/reports/category-breakdown", params={"year": 2030, "month": 1})
 
     assert response.status_code == 200
     body = response.json()
@@ -118,18 +114,14 @@ def test_category_breakdown_empty_month_returns_empty_items(client: TestClient) 
     assert body["total"] == "0"
 
 
-def test_asset_trend_reconstructs_past_balances(
-    client: TestClient, db_session: Session
-) -> None:
+def test_asset_trend_reconstructs_past_balances(client: TestClient, db_session: Session) -> None:
     today = date.today()
     prev_year, prev_month = _shift_month(today.year, today.month, 1)
     prev_month_end = _month_end(prev_year, prev_month)
     two_months_ago_year, two_months_ago_month = _shift_month(today.year, today.month, 2)
     two_months_ago_end = _month_end(two_months_ago_year, two_months_ago_month)
 
-    baseline = client.get(
-        "/api/reports/asset-trend", params={"months": 3}
-    ).json()["items"]
+    baseline = client.get("/api/reports/asset-trend", params={"months": 3}).json()["items"]
     assert len(baseline) == 3
 
     asset = _create_asset(db_session, balance=5000)
@@ -161,10 +153,7 @@ def test_asset_trend_reconstructs_past_balances(
         today.isoformat(),
     ]
 
-    deltas = [
-        int(after[i]["total_balance"]) - int(baseline[i]["total_balance"])
-        for i in range(3)
-    ]
+    deltas = [int(after[i]["total_balance"]) - int(baseline[i]["total_balance"]) for i in range(3)]
     assert deltas == [6000, 4000, 5000]
 
 
@@ -172,3 +161,41 @@ def test_asset_trend_rejects_unsupported_months(client: TestClient) -> None:
     response = client.get("/api/reports/asset-trend", params={"months": 4})
 
     assert response.status_code == 400
+
+
+def test_category_breakdown_excludes_transfer(client: TestClient, db_session: Session) -> None:
+    source = _create_asset(db_session, balance=100000)
+    destination = Asset(name="テスト財布", type="cash", balance=0, sort_order=98)
+    db_session.add(destination)
+    db_session.commit()
+    db_session.refresh(destination)
+    fixed_cost = _expense_category(db_session, major_category_id=1)
+
+    db_session.add_all(
+        [
+            Transaction(
+                date=date(2031, 3, 5),
+                amount=8000,
+                entry_kind="expense",
+                entry_type="normal",
+                major_category_id=1,
+                expense_category_id=fixed_cost.id,
+                asset_id=source.id,
+            ),
+            Transaction(
+                date=date(2031, 3, 10),
+                amount=20000,
+                entry_kind="transfer",
+                entry_type="normal",
+                asset_id=source.id,
+                transfer_to_asset_id=destination.id,
+            ),
+        ]
+    )
+    db_session.commit()
+
+    response = client.get("/api/reports/category-breakdown", params={"year": 2031, "month": 3})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == "8000"

@@ -122,6 +122,16 @@ export default function TransactionsPage() {
   };
 
   const categoryPill = (transaction: Transaction) => {
+    if (transaction.entry_kind === 'transfer') {
+      const destination = transaction.transfer_to_asset_id
+        ? assetsById.get(transaction.transfer_to_asset_id)?.name
+        : undefined;
+      return (
+        <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs text-accent">
+          振替{destination ? ` → ${destination}` : ''}
+        </span>
+      );
+    }
     if (transaction.expense_category_id !== null) {
       const major = transaction.major_category_id
         ? majorCategoriesById.get(transaction.major_category_id)?.name
@@ -258,10 +268,16 @@ export default function TransactionsPage() {
                   className={
                     transaction.entry_kind === 'income'
                       ? 'border-b border-line-soft px-2.5 py-2 text-right font-mono text-income tabular-nums'
-                      : 'border-b border-line-soft px-2.5 py-2 text-right font-mono text-expense tabular-nums'
+                      : transaction.entry_kind === 'expense'
+                        ? 'border-b border-line-soft px-2.5 py-2 text-right font-mono text-expense tabular-nums'
+                        : 'border-b border-line-soft px-2.5 py-2 text-right font-mono text-ink tabular-nums'
                   }
                 >
-                  {transaction.entry_kind === 'income' ? '+' : '-'}
+                  {transaction.entry_kind === 'income'
+                    ? '+'
+                    : transaction.entry_kind === 'expense'
+                      ? '-'
+                      : ''}
                   {formatYen(transaction.amount)}
                 </td>
                 <td className="border-b border-line-soft px-2.5 py-2 text-center text-ink-muted">
