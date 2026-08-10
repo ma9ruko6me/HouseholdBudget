@@ -128,12 +128,9 @@ export default function ReportsPage() {
   return (
     <AppShell>
       <div className="flex flex-col gap-4">
-        <div className="flex items-baseline gap-2.5">
-          <h2 className="text-[21px] text-ink">レポート</h2>
-          <span className="rounded bg-tag-bg px-1.5 py-0.5 font-mono text-[15px] text-ink-muted">
-            /reports
-          </span>
-        </div>
+        <h2 className="-mx-5 -mt-5 bg-accent px-5 py-3.5 font-mono text-[21px] tracking-wide text-paper">
+          REPORTS
+        </h2>
 
         {error && <p className="text-xs text-expense">{error}</p>}
 
