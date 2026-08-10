@@ -14,14 +14,14 @@ export function ConfirmDialog({ message, onConfirm, onCancel }: Props) {
         <div className="flex justify-end gap-2">
           <button
             type="button"
-            className="rounded border border-line bg-paper px-3 py-1.5 font-mono text-[11.5px] text-ink"
+            className="rounded border border-line bg-paper px-3 py-1.5 font-mono text-[15.5px] text-ink"
             onClick={onCancel}
           >
             キャンセル
           </button>
           <button
             type="button"
-            className="rounded border border-expense bg-expense-soft px-3 py-1.5 font-mono text-[11.5px] text-expense"
+            className="rounded border border-expense bg-expense-soft px-3 py-1.5 font-mono text-[15.5px] text-expense"
             onClick={onConfirm}
           >
             削除する

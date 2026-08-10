@@ -185,13 +185,13 @@ export function TransactionFormModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4">
       <div className="w-full max-w-[420px] rounded-md border border-line bg-paper p-5 shadow-lg">
-        <h3 className="mb-3.5 text-[15px] font-semibold text-ink">
+        <h3 className="mb-3.5 text-[19px] font-semibold text-ink">
           {mode === 'create' ? '取引を追加' : '取引を編集'}
         </h3>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <div className="flex gap-3">
             <div className="flex flex-1 flex-col gap-1">
-              <label className="font-mono text-[10.5px] tracking-wide text-ink-muted uppercase">
+              <label className="font-mono text-[14.5px] tracking-wide text-ink-muted uppercase">
                 日付
               </label>
               <input
@@ -203,7 +203,7 @@ export function TransactionFormModal({
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="font-mono text-[10.5px] tracking-wide text-ink-muted uppercase">
+              <label className="font-mono text-[14.5px] tracking-wide text-ink-muted uppercase">
                 区分
               </label>
               <div className="flex overflow-hidden rounded border border-line">
@@ -235,7 +235,7 @@ export function TransactionFormModal({
 
           {entryKind === 'expense' && (
             <div className="flex flex-col gap-1">
-              <label className="font-mono text-[10.5px] tracking-wide text-ink-muted uppercase">
+              <label className="font-mono text-[14.5px] tracking-wide text-ink-muted uppercase">
                 大カテゴリ
               </label>
               <div className="mb-1 flex flex-wrap gap-1.5">
@@ -245,8 +245,8 @@ export function TransactionFormModal({
                     type="button"
                     className={
                       major.id === majorCategoryId
-                        ? 'rounded border border-expense bg-expense-soft px-3 py-1 font-mono text-[11.5px] font-semibold text-expense'
-                        : 'rounded border border-line-soft px-3 py-1 font-mono text-[11.5px] text-ink-muted'
+                        ? 'rounded border border-expense bg-expense-soft px-3 py-1 font-mono text-[15.5px] font-semibold text-expense'
+                        : 'rounded border border-line-soft px-3 py-1 font-mono text-[15.5px] text-ink-muted'
                     }
                     onClick={() => handleSelectMajorCategory(major.id)}
                   >
@@ -258,9 +258,9 @@ export function TransactionFormModal({
           )}
 
           <div className="flex flex-col gap-1">
-            <label className="font-mono text-[10.5px] tracking-wide text-ink-muted uppercase">
+            <label className="font-mono text-[14.5px] tracking-wide text-ink-muted uppercase">
               {entryKind === 'expense' ? '中カテゴリ' : '収入カテゴリ'}{' '}
-              <span className="font-sans text-[11px] font-normal normal-case text-ink-muted">
+              <span className="font-sans text-[15px] font-normal normal-case text-ink-muted">
                 (タップで選択・×で削除・+で新規追加)
               </span>
             </label>
@@ -291,7 +291,7 @@ export function TransactionFormModal({
                     {!selected && (
                       <button
                         type="button"
-                        className="font-mono text-[10px] text-ink-muted"
+                        className="font-mono text-[14px] text-ink-muted"
                         onClick={(event) => {
                           event.stopPropagation();
                           setCategoryToDelete({
@@ -325,7 +325,7 @@ export function TransactionFormModal({
                   />
                   <button
                     type="button"
-                    className="font-mono text-[11px] text-accent"
+                    className="font-mono text-[15px] text-accent"
                     onClick={() => void handleAddCategory()}
                   >
                     追加
@@ -334,7 +334,7 @@ export function TransactionFormModal({
               ) : (
                 <button
                   type="button"
-                  className="rounded-full border border-dashed border-line px-3 py-1 font-mono text-[11.5px] text-ink-muted"
+                  className="rounded-full border border-dashed border-line px-3 py-1 font-mono text-[15.5px] text-ink-muted"
                   onClick={() => setAddingCategory(true)}
                 >
                   + 新規カテゴリ
@@ -345,7 +345,7 @@ export function TransactionFormModal({
 
           <div className="flex gap-3">
             <div className="flex flex-1 flex-col gap-1">
-              <label className="font-mono text-[10.5px] tracking-wide text-ink-muted uppercase">
+              <label className="font-mono text-[14.5px] tracking-wide text-ink-muted uppercase">
                 資産
               </label>
               <select
@@ -362,7 +362,7 @@ export function TransactionFormModal({
               </select>
             </div>
             <div className="flex flex-1 flex-col gap-1">
-              <label className="font-mono text-[10.5px] tracking-wide text-ink-muted uppercase">
+              <label className="font-mono text-[14.5px] tracking-wide text-ink-muted uppercase">
                 金額
               </label>
               <input
@@ -377,7 +377,7 @@ export function TransactionFormModal({
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="font-mono text-[10.5px] tracking-wide text-ink-muted uppercase">
+            <label className="font-mono text-[14.5px] tracking-wide text-ink-muted uppercase">
               メモ
             </label>
             <input
@@ -395,7 +395,7 @@ export function TransactionFormModal({
               {mode === 'edit' && (
                 <button
                   type="button"
-                  className="rounded border border-expense bg-expense-soft px-3 py-1.5 font-mono text-[11.5px] text-expense"
+                  className="rounded border border-expense bg-expense-soft px-3 py-1.5 font-mono text-[15.5px] text-expense"
                   onClick={() => setShowDeleteConfirm(true)}
                   disabled={submitting}
                 >
@@ -406,7 +406,7 @@ export function TransactionFormModal({
             <div className="flex gap-2">
               <button
                 type="button"
-                className="rounded border border-line bg-paper px-3 py-1.5 font-mono text-[11.5px] text-ink"
+                className="rounded border border-line bg-paper px-3 py-1.5 font-mono text-[15.5px] text-ink"
                 onClick={onClose}
                 disabled={submitting}
               >
@@ -414,7 +414,7 @@ export function TransactionFormModal({
               </button>
               <button
                 type="submit"
-                className="rounded border border-accent bg-accent px-3 py-1.5 font-mono text-[11.5px] text-paper disabled:opacity-50"
+                className="rounded border border-accent bg-accent px-3 py-1.5 font-mono text-[15.5px] text-paper disabled:opacity-50"
                 disabled={submitting}
               >
                 {submitting ? '送信中...' : '保存'}

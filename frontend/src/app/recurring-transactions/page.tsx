@@ -110,12 +110,12 @@ export default function RecurringTransactionsPage() {
   return (
     <AppShell>
       <div className="mb-1 flex items-baseline gap-2.5">
-        <h2 className="text-[17px] text-ink">定期取引管理</h2>
-        <span className="rounded bg-tag-bg px-1.5 py-0.5 font-mono text-[11px] text-ink-muted">
+        <h2 className="text-[21px] text-ink">定期取引管理</h2>
+        <span className="rounded bg-tag-bg px-1.5 py-0.5 font-mono text-[15px] text-ink-muted">
           /recurring-transactions
         </span>
       </div>
-      <p className="mb-4.5 max-w-[70ch] text-[12.5px] text-ink-muted">
+      <p className="mb-4.5 max-w-[70ch] text-[16.5px] text-ink-muted">
         毎月発生する取引を登録しておくと、該当日になったら自動的に取引として登録される。
       </p>
 
@@ -123,25 +123,25 @@ export default function RecurringTransactionsPage() {
       {error && <p className="text-xs text-expense">{error}</p>}
 
       <div className="overflow-x-auto rounded border border-line-soft">
-        <table className="w-full text-[12.5px]">
+        <table className="w-full text-[16.5px]">
           <thead>
             <tr>
-              <th className="border-b border-line px-2.5 py-1.5 text-left font-mono text-[10.5px] text-ink-muted uppercase">
+              <th className="border-b border-line px-2.5 py-1.5 text-left font-mono text-[14.5px] text-ink-muted uppercase">
                 大カテゴリ
               </th>
-              <th className="border-b border-line px-2.5 py-1.5 text-left font-mono text-[10.5px] text-ink-muted uppercase">
+              <th className="border-b border-line px-2.5 py-1.5 text-left font-mono text-[14.5px] text-ink-muted uppercase">
                 中カテゴリ
               </th>
-              <th className="border-b border-line px-2.5 py-1.5 text-left font-mono text-[10.5px] text-ink-muted uppercase">
+              <th className="border-b border-line px-2.5 py-1.5 text-left font-mono text-[14.5px] text-ink-muted uppercase">
                 資産
               </th>
-              <th className="border-b border-line px-2.5 py-1.5 text-left font-mono text-[10.5px] text-ink-muted uppercase">
+              <th className="border-b border-line px-2.5 py-1.5 text-left font-mono text-[14.5px] text-ink-muted uppercase">
                 頻度
               </th>
-              <th className="border-b border-line px-2.5 py-1.5 text-left font-mono text-[10.5px] text-ink-muted uppercase">
+              <th className="border-b border-line px-2.5 py-1.5 text-left font-mono text-[14.5px] text-ink-muted uppercase">
                 登録日
               </th>
-              <th className="border-b border-line px-2.5 py-1.5 text-right font-mono text-[10.5px] text-ink-muted uppercase">
+              <th className="border-b border-line px-2.5 py-1.5 text-right font-mono text-[14.5px] text-ink-muted uppercase">
                 金額
               </th>
               <th className="border-b border-line px-2.5 py-1.5"></th>
@@ -209,7 +209,7 @@ export default function RecurringTransactionsPage() {
       <div className="mt-4">
         <button
           type="button"
-          className="rounded border border-accent bg-accent px-3 py-1.5 font-mono text-[11.5px] text-paper"
+          className="rounded border border-accent bg-accent px-3 py-1.5 font-mono text-[15.5px] text-paper"
           onClick={() => setFormModal({ mode: 'create' })}
         >
           + 定期取引を追加

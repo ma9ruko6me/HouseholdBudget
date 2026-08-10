@@ -143,8 +143,8 @@ export default function ReportsPage() {
     <AppShell>
       <div className="flex flex-col gap-4">
         <div className="flex items-baseline gap-2.5">
-          <h2 className="text-[17px] text-ink">レポート</h2>
-          <span className="rounded bg-tag-bg px-1.5 py-0.5 font-mono text-[11px] text-ink-muted">
+          <h2 className="text-[21px] text-ink">レポート</h2>
+          <span className="rounded bg-tag-bg px-1.5 py-0.5 font-mono text-[15px] text-ink-muted">
             /reports
           </span>
         </div>
@@ -153,10 +153,10 @@ export default function ReportsPage() {
 
         <div className="rounded border border-line-soft p-4">
           <div className="mb-3 flex items-center justify-between">
-            <div className="text-[13.5px] font-semibold text-ink">
+            <div className="text-[17.5px] font-semibold text-ink">
               カテゴリ別支出
             </div>
-            <div className="flex items-center gap-2.5 font-mono text-[12.5px]">
+            <div className="flex items-center gap-2.5 font-mono text-[16.5px]">
               <button
                 type="button"
                 className="flex h-6 w-6 items-center justify-center rounded border border-line text-ink-muted"
@@ -202,23 +202,23 @@ export default function ReportsPage() {
                     <div
                       className={
                         isCenter
-                          ? 'mb-2 text-center text-[12.5px] font-semibold text-accent'
-                          : 'mb-2 text-center text-[12.5px] text-ink-muted'
+                          ? 'mb-2 text-center text-[16.5px] font-semibold text-accent'
+                          : 'mb-2 text-center text-[16.5px] text-ink-muted'
                       }
                     >
                       {m.year}年{m.month}月
                     </div>
                     {breakdown && (
                       <>
-                        <div className="mx-auto h-[140px] w-[140px]">
+                        <div className="mx-auto h-[170px] w-[170px]">
                           <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                               <Pie
                                 data={pieData}
                                 dataKey="value"
                                 nameKey="name"
-                                innerRadius={38}
-                                outerRadius={65}
+                                innerRadius={46}
+                                outerRadius={79}
                                 paddingAngle={pieData.length > 1 ? 2 : 0}
                               >
                                 {pieData.map((entry, index) => (
@@ -238,7 +238,7 @@ export default function ReportsPage() {
                             </PieChart>
                           </ResponsiveContainer>
                         </div>
-                        <div className="mt-2 flex flex-col gap-1 text-[11.5px]">
+                        <div className="mt-2 flex flex-col gap-1 text-[15.5px]">
                           {breakdown.items.map((item, index) => (
                             <div
                               key={item.major_category_id}
@@ -287,8 +287,8 @@ export default function ReportsPage() {
 
         <div className="rounded border border-line-soft p-4">
           <div className="mb-3 flex items-center justify-between">
-            <div className="text-[13.5px] font-semibold text-ink">資産推移</div>
-            <div className="flex gap-1.5 font-mono text-[11.5px]">
+            <div className="text-[17.5px] font-semibold text-ink">資産推移</div>
+            <div className="flex gap-1.5 font-mono text-[15.5px]">
               {TREND_PERIODS.map((p) => (
                 <button
                   key={p}
@@ -307,7 +307,7 @@ export default function ReportsPage() {
           </div>
 
           {trend && (
-            <div className="h-[220px] w-full">
+            <div className="h-[260px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={trendData}>
                   <XAxis
