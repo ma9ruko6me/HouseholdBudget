@@ -109,15 +109,9 @@ export default function RecurringTransactionsPage() {
 
   return (
     <AppShell>
-      <div className="mb-1 flex items-baseline gap-2.5">
-        <h2 className="text-[21px] text-ink">定期取引管理</h2>
-        <span className="rounded bg-tag-bg px-1.5 py-0.5 font-mono text-[15px] text-ink-muted">
-          /recurring-transactions
-        </span>
-      </div>
-      <p className="mb-4.5 max-w-[70ch] text-[16.5px] text-ink-muted">
-        毎月発生する取引を登録しておくと、該当日になったら自動的に取引として登録される。
-      </p>
+      <h2 className="-mx-5 -mt-5 mb-4.5 bg-accent px-5 py-3.5 font-mono text-[21px] tracking-wide text-paper">
+        RECURRING
+      </h2>
 
       {loading && <p className="text-xs text-ink-muted">読み込み中...</p>}
       {error && <p className="text-xs text-expense">{error}</p>}

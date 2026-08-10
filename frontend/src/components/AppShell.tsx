@@ -4,10 +4,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const NAV_ITEMS = [
-  { href: '/transactions', label: '取引一覧' },
-  { href: '/assets', label: '資産一覧' },
-  { href: '/reports', label: 'レポート' },
-  { href: '/recurring-transactions', label: '定期取引管理' },
+  { href: '/transactions', label: 'TRANSACTIONS' },
+  { href: '/assets', label: 'ASSETS' },
+  { href: '/reports', label: 'REPORTS' },
+  { href: '/recurring-transactions', label: 'RECURRING' },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
