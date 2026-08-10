@@ -3,6 +3,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.crud import asset as asset_crud
+from app.crud import recurring_transaction as recurring_transaction_crud
 from app.crud import transaction as transaction_crud
 from app.db.session import get_db
 from app.models import Asset, Transaction
@@ -39,6 +40,7 @@ def list_transactions(
     month: int = Query(..., ge=1, le=12),
     db: Session = Depends(get_db),
 ) -> TransactionListRead:
+    recurring_transaction_crud.generate_due_transactions(db)
     items = transaction_crud.get_transactions_by_month(db, year, month)
     return TransactionListRead(items=items)
 

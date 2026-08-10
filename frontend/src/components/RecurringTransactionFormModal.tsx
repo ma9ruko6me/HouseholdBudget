@@ -9,28 +9,28 @@ import type {
   IncomeCategory,
   MajorCategory,
 } from '@/types/category';
+import type { EntryKind } from '@/types/transaction';
 import type {
-  EntryKind,
-  Transaction,
-  TransactionInput,
-} from '@/types/transaction';
+  RecurringTransaction,
+  RecurringTransactionInput,
+} from '@/types/recurringTransaction';
 
 type Props = {
   mode: 'create' | 'edit';
-  initialTransaction?: Transaction;
+  initialRecurringTransaction?: RecurringTransaction;
   assets: Asset[];
   majorCategories: MajorCategory[];
   expenseCategories: ExpenseCategory[];
   incomeCategories: IncomeCategory[];
-  onSubmit: (input: TransactionInput) => Promise<void>;
+  onSubmit: (input: RecurringTransactionInput) => Promise<void>;
   onDelete?: () => Promise<void>;
   onCategoriesChanged: () => Promise<void>;
   onClose: () => void;
 };
 
-export function TransactionFormModal({
+export function RecurringTransactionFormModal({
   mode,
-  initialTransaction,
+  initialRecurringTransaction,
   assets,
   majorCategories,
   expenseCategories,
@@ -40,26 +40,31 @@ export function TransactionFormModal({
   onCategoriesChanged,
   onClose,
 }: Props) {
-  const [date, setDate] = useState(
-    initialTransaction?.date ?? new Date().toISOString().slice(0, 10),
-  );
+  const [name, setName] = useState(initialRecurringTransaction?.name ?? '');
   const [entryKind, setEntryKind] = useState<EntryKind>(
-    initialTransaction?.entry_kind ?? 'expense',
+    initialRecurringTransaction?.entry_kind ?? 'expense',
   );
   const [majorCategoryId, setMajorCategoryId] = useState<number | null>(
-    initialTransaction?.major_category_id ?? majorCategories[0]?.id ?? null,
+    initialRecurringTransaction?.major_category_id ??
+      majorCategories[0]?.id ??
+      null,
   );
   const [expenseCategoryId, setExpenseCategoryId] = useState<number | null>(
-    initialTransaction?.expense_category_id ?? null,
+    initialRecurringTransaction?.expense_category_id ?? null,
   );
   const [incomeCategoryId, setIncomeCategoryId] = useState<number | null>(
-    initialTransaction?.income_category_id ?? null,
+    initialRecurringTransaction?.income_category_id ?? null,
   );
   const [assetId, setAssetId] = useState<number | null>(
-    initialTransaction?.asset_id ?? assets[0]?.id ?? null,
+    initialRecurringTransaction?.asset_id ?? assets[0]?.id ?? null,
   );
-  const [amount, setAmount] = useState(initialTransaction?.amount ?? '');
-  const [memo, setMemo] = useState(initialTransaction?.memo ?? '');
+  const [amount, setAmount] = useState(
+    initialRecurringTransaction?.amount ?? '',
+  );
+  const [dayOfMonth, setDayOfMonth] = useState(
+    initialRecurringTransaction?.day_of_month ?? 1,
+  );
+  const [memo, setMemo] = useState(initialRecurringTransaction?.memo ?? '');
   const [addingCategory, setAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -152,13 +157,14 @@ export function TransactionFormModal({
     setSubmitting(true);
     try {
       await onSubmit({
-        date,
+        name,
         amount,
         entry_kind: entryKind,
         major_category_id: entryKind === 'expense' ? majorCategoryId : null,
         expense_category_id: entryKind === 'expense' ? expenseCategoryId : null,
         income_category_id: entryKind === 'income' ? incomeCategoryId : null,
         asset_id: assetId,
+        day_of_month: dayOfMonth,
         memo: memo || null,
       });
       onClose();
@@ -186,22 +192,23 @@ export function TransactionFormModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4">
       <div className="w-full max-w-[420px] rounded-md border border-line bg-paper p-5 shadow-lg">
         <h3 className="mb-3.5 text-[15px] font-semibold text-ink">
-          {mode === 'create' ? '取引を追加' : '取引を編集'}
+          {mode === 'create' ? '定期取引を追加' : '定期取引を編集'}
         </h3>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1">
+            <label className="font-mono text-[10.5px] tracking-wide text-ink-muted uppercase">
+              名称
+            </label>
+            <input
+              className="rounded border border-line bg-paper px-2.5 py-1.5 text-sm text-ink"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              maxLength={50}
+              required
+            />
+          </div>
+
           <div className="flex gap-3">
-            <div className="flex flex-1 flex-col gap-1">
-              <label className="font-mono text-[10.5px] tracking-wide text-ink-muted uppercase">
-                日付
-              </label>
-              <input
-                type="date"
-                className="rounded border border-line bg-paper px-2.5 py-1.5 text-sm text-ink"
-                value={date}
-                onChange={(event) => setDate(event.target.value)}
-                required
-              />
-            </div>
             <div className="flex flex-col gap-1">
               <label className="font-mono text-[10.5px] tracking-wide text-ink-muted uppercase">
                 区分
@@ -230,6 +237,22 @@ export function TransactionFormModal({
                   収入
                 </button>
               </div>
+            </div>
+            <div className="flex flex-1 flex-col gap-1">
+              <label className="font-mono text-[10.5px] tracking-wide text-ink-muted uppercase">
+                登録日(毎月)
+              </label>
+              <select
+                className="rounded border border-line bg-paper px-2.5 py-1.5 text-sm text-ink"
+                value={dayOfMonth}
+                onChange={(event) => setDayOfMonth(Number(event.target.value))}
+              >
+                {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                  <option key={day} value={day}>
+                    毎月{day}日
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
@@ -434,7 +457,7 @@ export function TransactionFormModal({
 
       {showDeleteConfirm && (
         <ConfirmDialog
-          message="この取引を削除しますか？"
+          message="この定期取引を削除しますか？(すでに登録済みの取引は残ります)"
           onCancel={() => setShowDeleteConfirm(false)}
           onConfirm={() => void handleConfirmDelete()}
         />

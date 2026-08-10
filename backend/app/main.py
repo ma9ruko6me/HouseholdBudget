@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes.assets import router as assets_router
 from app.api.routes.categories import router as categories_router
+from app.api.routes.recurring_transactions import router as recurring_transactions_router
 from app.api.routes.transactions import router as transactions_router
 from app.core.config import settings
 
@@ -18,6 +19,7 @@ app.add_middleware(
 app.include_router(categories_router, prefix="/api")
 app.include_router(assets_router, prefix="/api")
 app.include_router(transactions_router, prefix="/api")
+app.include_router(recurring_transactions_router, prefix="/api")
 
 
 @app.get("/api/health")
