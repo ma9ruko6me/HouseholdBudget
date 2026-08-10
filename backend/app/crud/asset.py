@@ -43,6 +43,11 @@ def is_asset_referenced(db: Session, asset_id: int) -> bool:
     )
     if in_transactions is not None:
         return True
+    in_transfer_transactions = db.scalar(
+        select(Transaction.id).where(Transaction.transfer_to_asset_id == asset_id).limit(1)
+    )
+    if in_transfer_transactions is not None:
+        return True
     in_recurring = db.scalar(
         select(RecurringTransaction.id).where(RecurringTransaction.asset_id == asset_id).limit(1)
     )

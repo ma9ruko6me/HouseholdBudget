@@ -1,4 +1,4 @@
-export type EntryKind = 'income' | 'expense';
+export type EntryKind = 'income' | 'expense' | 'transfer';
 export type EntryType = 'normal' | 'adjustment';
 
 export type Transaction = {
@@ -11,6 +11,7 @@ export type Transaction = {
   expense_category_id: number | null;
   income_category_id: number | null;
   asset_id: number;
+  transfer_to_asset_id: number | null;
   memo: string | null;
 };
 
@@ -26,6 +27,7 @@ export type TransactionInput = {
   expense_category_id: number | null;
   income_category_id: number | null;
   asset_id: number;
+  transfer_to_asset_id: number | null;
   memo: string | null;
 };
 

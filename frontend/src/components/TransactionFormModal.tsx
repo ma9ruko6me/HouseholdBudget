@@ -58,6 +58,9 @@ export function TransactionFormModal({
   const [assetId, setAssetId] = useState<number | null>(
     initialTransaction?.asset_id ?? assets[0]?.id ?? null,
   );
+  const [transferToAssetId, setTransferToAssetId] = useState<number | null>(
+    initialTransaction?.transfer_to_asset_id ?? null,
+  );
   const [amount, setAmount] = useState(initialTransaction?.amount ?? '');
   const [memo, setMemo] = useState(initialTransaction?.memo ?? '');
   const [addingCategory, setAddingCategory] = useState(false);
@@ -82,12 +85,18 @@ export function TransactionFormModal({
     setAddingCategory(false);
     if (kind === 'expense') {
       setIncomeCategoryId(null);
+      setTransferToAssetId(null);
       setMajorCategoryId(
         (current) => current ?? majorCategories[0]?.id ?? null,
       );
+    } else if (kind === 'income') {
+      setMajorCategoryId(null);
+      setExpenseCategoryId(null);
+      setTransferToAssetId(null);
     } else {
       setMajorCategoryId(null);
       setExpenseCategoryId(null);
+      setIncomeCategoryId(null);
     }
   };
 
@@ -149,6 +158,10 @@ export function TransactionFormModal({
       setError('資産を選択してください');
       return;
     }
+    if (entryKind === 'transfer' && transferToAssetId === null) {
+      setError('移動先資産を選択してください');
+      return;
+    }
     setSubmitting(true);
     try {
       await onSubmit({
@@ -159,6 +172,8 @@ export function TransactionFormModal({
         expense_category_id: entryKind === 'expense' ? expenseCategoryId : null,
         income_category_id: entryKind === 'income' ? incomeCategoryId : null,
         asset_id: assetId,
+        transfer_to_asset_id:
+          entryKind === 'transfer' ? transferToAssetId : null,
         memo: memo || null,
       });
       onClose();
@@ -229,6 +244,17 @@ export function TransactionFormModal({
                 >
                   収入
                 </button>
+                <button
+                  type="button"
+                  className={
+                    entryKind === 'transfer'
+                      ? 'bg-accent-soft px-4 py-1.5 font-mono text-xs text-accent'
+                      : 'px-4 py-1.5 font-mono text-xs text-ink-muted'
+                  }
+                  onClick={() => handleToggleKind('transfer')}
+                >
+                  振替
+                </button>
               </div>
             </div>
           </div>
@@ -257,91 +283,120 @@ export function TransactionFormModal({
             </div>
           )}
 
-          <div className="flex flex-col gap-1">
-            <label className="font-mono text-[14.5px] tracking-wide text-ink-muted uppercase">
-              {entryKind === 'expense' ? '中カテゴリ' : '収入カテゴリ'}{' '}
-              <span className="font-sans text-[15px] font-normal normal-case text-ink-muted">
-                (タップで選択・×で削除・+で新規追加)
-              </span>
-            </label>
-            <div className="flex flex-wrap gap-1.5">
-              {(entryKind === 'expense'
-                ? visibleExpenseCategories
-                : incomeCategories
-              ).map((category) => {
-                const selected =
-                  entryKind === 'expense'
-                    ? category.id === expenseCategoryId
-                    : category.id === incomeCategoryId;
-                return (
-                  <span
-                    key={category.id}
-                    className={
-                      selected
-                        ? 'inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-accent bg-accent-soft py-1 pr-1.5 pl-3 font-semibold text-accent'
-                        : 'inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-line-soft py-1 pr-1.5 pl-3 text-ink'
-                    }
-                    onClick={() =>
-                      entryKind === 'expense'
-                        ? setExpenseCategoryId(category.id)
-                        : setIncomeCategoryId(category.id)
-                    }
-                  >
-                    {category.name}
-                    {!selected && (
-                      <button
-                        type="button"
-                        className="font-mono text-[14px] text-ink-muted"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          setCategoryToDelete({
-                            kind:
-                              entryKind === 'expense' ? 'expense' : 'income',
-                            id: category.id,
-                            name: category.name,
-                          });
-                        }}
-                      >
-                        ×
-                      </button>
-                    )}
-                  </span>
-                );
-              })}
-              {addingCategory ? (
-                <span className="inline-flex items-center gap-1 rounded-full border border-dashed border-line py-1 pr-1.5 pl-3">
-                  <input
-                    autoFocus
-                    className="w-24 border-none bg-transparent text-sm text-ink outline-none"
-                    value={newCategoryName}
-                    onChange={(event) => setNewCategoryName(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') {
-                        event.preventDefault();
-                        void handleAddCategory();
+          {entryKind === 'transfer' ? (
+            <div className="flex flex-col gap-1">
+              <label className="font-mono text-[14.5px] tracking-wide text-ink-muted uppercase">
+                移動先資産
+              </label>
+              <select
+                className="rounded border border-line bg-paper px-2.5 py-1.5 text-sm text-ink"
+                value={transferToAssetId ?? ''}
+                onChange={(event) =>
+                  setTransferToAssetId(Number(event.target.value))
+                }
+                required
+              >
+                <option value="" disabled>
+                  選択してください
+                </option>
+                {assets
+                  .filter((asset) => asset.id !== assetId)
+                  .map((asset) => (
+                    <option key={asset.id} value={asset.id}>
+                      {asset.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1">
+              <label className="font-mono text-[14.5px] tracking-wide text-ink-muted uppercase">
+                {entryKind === 'expense' ? '中カテゴリ' : '収入カテゴリ'}{' '}
+                <span className="font-sans text-[15px] font-normal normal-case text-ink-muted">
+                  (タップで選択・×で削除・+で新規追加)
+                </span>
+              </label>
+              <div className="flex flex-wrap gap-1.5">
+                {(entryKind === 'expense'
+                  ? visibleExpenseCategories
+                  : incomeCategories
+                ).map((category) => {
+                  const selected =
+                    entryKind === 'expense'
+                      ? category.id === expenseCategoryId
+                      : category.id === incomeCategoryId;
+                  return (
+                    <span
+                      key={category.id}
+                      className={
+                        selected
+                          ? 'inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-accent bg-accent-soft py-1 pr-1.5 pl-3 font-semibold text-accent'
+                          : 'inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-line-soft py-1 pr-1.5 pl-3 text-ink'
                       }
-                    }}
-                    maxLength={50}
-                  />
+                      onClick={() =>
+                        entryKind === 'expense'
+                          ? setExpenseCategoryId(category.id)
+                          : setIncomeCategoryId(category.id)
+                      }
+                    >
+                      {category.name}
+                      {!selected && (
+                        <button
+                          type="button"
+                          className="font-mono text-[14px] text-ink-muted"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setCategoryToDelete({
+                              kind:
+                                entryKind === 'expense' ? 'expense' : 'income',
+                              id: category.id,
+                              name: category.name,
+                            });
+                          }}
+                        >
+                          ×
+                        </button>
+                      )}
+                    </span>
+                  );
+                })}
+                {addingCategory ? (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-dashed border-line py-1 pr-1.5 pl-3">
+                    <input
+                      autoFocus
+                      className="w-24 border-none bg-transparent text-sm text-ink outline-none"
+                      value={newCategoryName}
+                      onChange={(event) =>
+                        setNewCategoryName(event.target.value)
+                      }
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') {
+                          event.preventDefault();
+                          void handleAddCategory();
+                        }
+                      }}
+                      maxLength={50}
+                    />
+                    <button
+                      type="button"
+                      className="font-mono text-[15px] text-accent"
+                      onClick={() => void handleAddCategory()}
+                    >
+                      追加
+                    </button>
+                  </span>
+                ) : (
                   <button
                     type="button"
-                    className="font-mono text-[15px] text-accent"
-                    onClick={() => void handleAddCategory()}
+                    className="rounded-full border border-dashed border-line px-3 py-1 font-mono text-[15.5px] text-ink-muted"
+                    onClick={() => setAddingCategory(true)}
                   >
-                    追加
+                    + 新規カテゴリ
                   </button>
-                </span>
-              ) : (
-                <button
-                  type="button"
-                  className="rounded-full border border-dashed border-line px-3 py-1 font-mono text-[15.5px] text-ink-muted"
-                  onClick={() => setAddingCategory(true)}
-                >
-                  + 新規カテゴリ
-                </button>
-              )}
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="flex gap-3">
             <div className="flex flex-1 flex-col gap-1">

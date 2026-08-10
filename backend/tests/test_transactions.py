@@ -351,3 +351,281 @@ def test_monthly_summary_empty_month_returns_zero(client: TestClient) -> None:
     assert body["income_total"] == "0"
     assert body["expense_total"] == "0"
     assert body["balance"] == "0"
+
+
+def _create_second_asset(db_session: Session, balance: int = 5000) -> Asset:
+    asset = Asset(name="テスト財布", type="cash", balance=balance, sort_order=2)
+    db_session.add(asset)
+    db_session.commit()
+    db_session.refresh(asset)
+    return asset
+
+
+def test_create_transfer_moves_balance_between_assets(
+    client: TestClient, db_session: Session
+) -> None:
+    source = _create_asset(db_session, balance=10000)
+    destination = _create_second_asset(db_session, balance=3000)
+
+    response = client.post(
+        "/api/transactions",
+        json={
+            "date": "2026-08-10",
+            "amount": "1500",
+            "entry_kind": "transfer",
+            "asset_id": source.id,
+            "transfer_to_asset_id": destination.id,
+        },
+    )
+
+    assert response.status_code == 201
+    body = response.json()
+    assert body["entry_kind"] == "transfer"
+    assert body["major_category_id"] is None
+    assert body["expense_category_id"] is None
+    assert body["income_category_id"] is None
+    assert body["transfer_to_asset_id"] == destination.id
+
+    db_session.refresh(source)
+    db_session.refresh(destination)
+    assert source.balance == Decimal("8500")
+    assert destination.balance == Decimal("4500")
+
+
+def test_transfer_with_category_returns_422(client: TestClient, db_session: Session) -> None:
+    source = _create_asset(db_session)
+    destination = _create_second_asset(db_session)
+    income_category_id = _income_category_id(db_session)
+
+    response = client.post(
+        "/api/transactions",
+        json={
+            "date": "2026-08-10",
+            "amount": "1000",
+            "entry_kind": "transfer",
+            "income_category_id": income_category_id,
+            "asset_id": source.id,
+            "transfer_to_asset_id": destination.id,
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_transfer_without_transfer_to_asset_id_returns_422(
+    client: TestClient, db_session: Session
+) -> None:
+    source = _create_asset(db_session)
+
+    response = client.post(
+        "/api/transactions",
+        json={
+            "date": "2026-08-10",
+            "amount": "1000",
+            "entry_kind": "transfer",
+            "asset_id": source.id,
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_transfer_to_same_asset_returns_422(client: TestClient, db_session: Session) -> None:
+    source = _create_asset(db_session)
+
+    response = client.post(
+        "/api/transactions",
+        json={
+            "date": "2026-08-10",
+            "amount": "1000",
+            "entry_kind": "transfer",
+            "asset_id": source.id,
+            "transfer_to_asset_id": source.id,
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_transfer_unknown_destination_asset_returns_400(
+    client: TestClient, db_session: Session
+) -> None:
+    source = _create_asset(db_session)
+
+    response = client.post(
+        "/api/transactions",
+        json={
+            "date": "2026-08-10",
+            "amount": "1000",
+            "entry_kind": "transfer",
+            "asset_id": source.id,
+            "transfer_to_asset_id": 999999,
+        },
+    )
+
+    assert response.status_code == 400
+
+
+def test_update_transfer_amount_adjusts_both_assets(
+    client: TestClient, db_session: Session
+) -> None:
+    source = _create_asset(db_session, balance=10000)
+    destination = _create_second_asset(db_session, balance=3000)
+
+    create_response = client.post(
+        "/api/transactions",
+        json={
+            "date": "2026-08-10",
+            "amount": "1000",
+            "entry_kind": "transfer",
+            "asset_id": source.id,
+            "transfer_to_asset_id": destination.id,
+        },
+    )
+    transaction_id = create_response.json()["id"]
+    db_session.refresh(source)
+    db_session.refresh(destination)
+    assert source.balance == Decimal("9000")
+    assert destination.balance == Decimal("4000")
+
+    update_response = client.put(
+        f"/api/transactions/{transaction_id}",
+        json={
+            "date": "2026-08-10",
+            "amount": "4000",
+            "entry_kind": "transfer",
+            "asset_id": source.id,
+            "transfer_to_asset_id": destination.id,
+        },
+    )
+
+    assert update_response.status_code == 200
+    db_session.refresh(source)
+    db_session.refresh(destination)
+    assert source.balance == Decimal("6000")
+    assert destination.balance == Decimal("7000")
+
+
+def test_update_transfer_change_destination_moves_balance(
+    client: TestClient, db_session: Session
+) -> None:
+    source = _create_asset(db_session, balance=10000)
+    destination_a = _create_second_asset(db_session, balance=3000)
+    destination_b = Asset(name="テストカード", type="credit_card", balance=0, sort_order=3)
+    db_session.add(destination_b)
+    db_session.commit()
+    db_session.refresh(destination_b)
+
+    create_response = client.post(
+        "/api/transactions",
+        json={
+            "date": "2026-08-10",
+            "amount": "1000",
+            "entry_kind": "transfer",
+            "asset_id": source.id,
+            "transfer_to_asset_id": destination_a.id,
+        },
+    )
+    transaction_id = create_response.json()["id"]
+
+    update_response = client.put(
+        f"/api/transactions/{transaction_id}",
+        json={
+            "date": "2026-08-10",
+            "amount": "1000",
+            "entry_kind": "transfer",
+            "asset_id": source.id,
+            "transfer_to_asset_id": destination_b.id,
+        },
+    )
+
+    assert update_response.status_code == 200
+    db_session.refresh(source)
+    db_session.refresh(destination_a)
+    db_session.refresh(destination_b)
+    assert source.balance == Decimal("9000")
+    assert destination_a.balance == Decimal("3000")
+    assert destination_b.balance == Decimal("1000")
+
+
+def test_delete_transfer_reverts_both_assets(client: TestClient, db_session: Session) -> None:
+    source = _create_asset(db_session, balance=10000)
+    destination = _create_second_asset(db_session, balance=3000)
+
+    create_response = client.post(
+        "/api/transactions",
+        json={
+            "date": "2026-08-10",
+            "amount": "1000",
+            "entry_kind": "transfer",
+            "asset_id": source.id,
+            "transfer_to_asset_id": destination.id,
+        },
+    )
+    transaction_id = create_response.json()["id"]
+
+    response = client.delete(f"/api/transactions/{transaction_id}")
+
+    assert response.status_code == 204
+    db_session.refresh(source)
+    db_session.refresh(destination)
+    assert source.balance == Decimal("10000")
+    assert destination.balance == Decimal("3000")
+
+
+def test_monthly_summary_excludes_transfer(client: TestClient, db_session: Session) -> None:
+    source = _create_asset(db_session, balance=10000)
+    destination = _create_second_asset(db_session, balance=3000)
+    income_category_id = _income_category_id(db_session)
+
+    db_session.add_all(
+        [
+            Transaction(
+                date=date(2026, 8, 1),
+                amount=5000,
+                entry_kind="income",
+                entry_type="normal",
+                income_category_id=income_category_id,
+                asset_id=source.id,
+            ),
+            Transaction(
+                date=date(2026, 8, 2),
+                amount=2000,
+                entry_kind="transfer",
+                entry_type="normal",
+                asset_id=source.id,
+                transfer_to_asset_id=destination.id,
+            ),
+        ]
+    )
+    db_session.commit()
+
+    response = client.get("/api/summary/monthly", params={"year": 2026, "month": 8})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["income_total"] == "5000"
+    assert body["expense_total"] == "0"
+    assert body["balance"] == "5000"
+
+
+def test_asset_referenced_as_transfer_destination_cannot_be_deleted(
+    client: TestClient, db_session: Session
+) -> None:
+    source = _create_asset(db_session)
+    destination = _create_second_asset(db_session)
+    db_session.add(
+        Transaction(
+            date=date(2026, 8, 10),
+            amount=1000,
+            entry_kind="transfer",
+            entry_type="normal",
+            asset_id=source.id,
+            transfer_to_asset_id=destination.id,
+        )
+    )
+    db_session.commit()
+
+    response = client.delete(f"/api/assets/{destination.id}")
+
+    assert response.status_code == 400

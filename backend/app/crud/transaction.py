@@ -12,6 +12,30 @@ def _signed_amount(entry_kind: str, amount: Decimal) -> Decimal:
     return amount if entry_kind == "income" else -amount
 
 
+def _apply_effect(
+    db: Session,
+    asset: Asset,
+    entry_kind: str,
+    amount: Decimal,
+    transfer_to_asset: Asset | None,
+) -> None:
+    apply_balance_delta(db, asset, _signed_amount(entry_kind, amount))
+    if entry_kind == "transfer" and transfer_to_asset is not None:
+        apply_balance_delta(db, transfer_to_asset, amount)
+
+
+def _revert_effect(
+    db: Session,
+    asset: Asset,
+    entry_kind: str,
+    amount: Decimal,
+    transfer_to_asset: Asset | None,
+) -> None:
+    apply_balance_delta(db, asset, -_signed_amount(entry_kind, amount))
+    if entry_kind == "transfer" and transfer_to_asset is not None:
+        apply_balance_delta(db, transfer_to_asset, -amount)
+
+
 def get_transactions_by_month(db: Session, year: int, month: int) -> list[Transaction]:
     stmt = (
         select(Transaction)
@@ -38,6 +62,7 @@ def create_transaction(
     expense_category_id: int | None,
     income_category_id: int | None,
     memo: str | None,
+    transfer_to_asset: Asset | None = None,
 ) -> Transaction:
     transaction = Transaction(
         date=date,
@@ -48,10 +73,11 @@ def create_transaction(
         expense_category_id=expense_category_id,
         income_category_id=income_category_id,
         asset_id=asset.id,
+        transfer_to_asset_id=transfer_to_asset.id if transfer_to_asset else None,
         memo=memo,
     )
     db.add(transaction)
-    apply_balance_delta(db, asset, _signed_amount(entry_kind, amount))
+    _apply_effect(db, asset, entry_kind, amount, transfer_to_asset)
     db.commit()
     db.refresh(transaction)
     return transaction
@@ -68,11 +94,17 @@ def update_transaction(
     expense_category_id: int | None,
     income_category_id: int | None,
     memo: str | None,
+    transfer_to_asset: Asset | None = None,
 ) -> Transaction:
     old_asset = db.get(Asset, transaction.asset_id)
+    old_transfer_to_asset = (
+        db.get(Asset, transaction.transfer_to_asset_id)
+        if transaction.transfer_to_asset_id is not None
+        else None
+    )
     if old_asset is not None:
-        apply_balance_delta(
-            db, old_asset, -_signed_amount(transaction.entry_kind, transaction.amount)
+        _revert_effect(
+            db, old_asset, transaction.entry_kind, transaction.amount, old_transfer_to_asset
         )
 
     transaction.date = date
@@ -82,9 +114,10 @@ def update_transaction(
     transaction.expense_category_id = expense_category_id
     transaction.income_category_id = income_category_id
     transaction.asset_id = asset.id
+    transaction.transfer_to_asset_id = transfer_to_asset.id if transfer_to_asset else None
     transaction.memo = memo
 
-    apply_balance_delta(db, asset, _signed_amount(entry_kind, amount))
+    _apply_effect(db, asset, entry_kind, amount, transfer_to_asset)
     db.commit()
     db.refresh(transaction)
     return transaction
@@ -92,8 +125,13 @@ def update_transaction(
 
 def delete_transaction(db: Session, transaction: Transaction) -> None:
     asset = db.get(Asset, transaction.asset_id)
+    transfer_to_asset = (
+        db.get(Asset, transaction.transfer_to_asset_id)
+        if transaction.transfer_to_asset_id is not None
+        else None
+    )
     if asset is not None:
-        apply_balance_delta(db, asset, -_signed_amount(transaction.entry_kind, transaction.amount))
+        _revert_effect(db, asset, transaction.entry_kind, transaction.amount, transfer_to_asset)
     db.delete(transaction)
     db.commit()
 

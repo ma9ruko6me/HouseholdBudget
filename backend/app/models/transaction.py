@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
 
-EntryKind = Enum("income", "expense", name="entry_kind")
+EntryKind = Enum("income", "expense", "transfer", name="entry_kind")
 EntryType = Enum("normal", "adjustment", name="entry_type")
 
 
@@ -29,6 +29,7 @@ class Transaction(Base):
         ForeignKey("income_categories.id", ondelete="SET NULL"), nullable=True
     )
     asset_id: Mapped[int] = mapped_column(ForeignKey("assets.id"), nullable=False)
+    transfer_to_asset_id: Mapped[int | None] = mapped_column(ForeignKey("assets.id"), nullable=True)
     memo: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now()
