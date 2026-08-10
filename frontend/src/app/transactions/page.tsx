@@ -2,9 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AppShell } from '@/components/AppShell';
+import { CategoryDonutCard } from '@/components/CategoryDonutCard';
 import { TransactionFormModal } from '@/components/TransactionFormModal';
 import { assetsApi } from '@/lib/assets';
 import { categoriesApi } from '@/lib/categories';
+import { formatYen } from '@/lib/format';
+import { reportsApi } from '@/lib/reports';
 import { transactionsApi } from '@/lib/transactions';
 import type { Asset } from '@/types/asset';
 import type {
@@ -12,11 +15,8 @@ import type {
   IncomeCategory,
   MajorCategory,
 } from '@/types/category';
+import type { CategoryBreakdownResponse } from '@/types/report';
 import type { MonthlySummary, Transaction } from '@/types/transaction';
-
-function formatYen(value: string): string {
-  return `¥${Number(value).toLocaleString()}`;
-}
 
 function formatDate(value: string): string {
   const [, month, day] = value.split('-');
@@ -30,6 +30,8 @@ export default function TransactionsPage() {
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [summary, setSummary] = useState<MonthlySummary | null>(null);
+  const [categoryBreakdown, setCategoryBreakdown] =
+    useState<CategoryBreakdownResponse | null>(null);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [majorCategories, setMajorCategories] = useState<MajorCategory[]>([]);
   const [expenseCategories, setExpenseCategories] = useState<ExpenseCategory[]>(
@@ -67,12 +69,14 @@ export default function TransactionsPage() {
     setLoading(true);
     setError(null);
     try {
-      const [transactionList, monthlySummary] = await Promise.all([
+      const [transactionList, monthlySummary, breakdown] = await Promise.all([
         transactionsApi.list(year, month),
         transactionsApi.monthlySummary(year, month),
+        reportsApi.categoryBreakdown(year, month),
       ]);
       setTransactions(transactionList.items);
       setSummary(monthlySummary);
+      setCategoryBreakdown(breakdown);
     } catch (err) {
       setError(err instanceof Error ? err.message : '取引の取得に失敗しました');
     } finally {
@@ -171,6 +175,8 @@ export default function TransactionsPage() {
         </span>
       </div>
 
+      {error && <p className="mb-2 text-xs text-expense">{error}</p>}
+
       <div className="mb-4 flex items-center gap-2.5 font-mono text-[16.5px]">
         <button
           type="button"
@@ -192,111 +198,124 @@ export default function TransactionsPage() {
       </div>
 
       {loading && <p className="text-xs text-ink-muted">読み込み中...</p>}
-      {error && <p className="text-xs text-expense">{error}</p>}
 
-      {summary && (
-        <div className="mb-4.5 flex gap-2.5">
-          <div className="flex-1 rounded border border-line-soft bg-paper px-3.5 py-2.5">
-            <div className="font-mono text-[14.5px] tracking-wide text-ink-muted uppercase">
-              収入合計
+      <div className="grid grid-cols-3 gap-x-2.5 gap-y-4">
+        {summary && (
+          <>
+            <div className="rounded border border-line-soft bg-paper px-3.5 py-2.5">
+              <div className="font-mono text-[14.5px] tracking-wide text-ink-muted uppercase">
+                収入合計
+              </div>
+              <div className="mt-0.5 font-mono text-lg text-income tabular-nums">
+                {formatYen(summary.income_total)}
+              </div>
             </div>
-            <div className="mt-0.5 font-mono text-lg text-income tabular-nums">
-              {formatYen(summary.income_total)}
+            <div className="rounded border border-line-soft bg-paper px-3.5 py-2.5">
+              <div className="font-mono text-[14.5px] tracking-wide text-ink-muted uppercase">
+                支出合計
+              </div>
+              <div className="mt-0.5 font-mono text-lg text-expense tabular-nums">
+                {formatYen(summary.expense_total)}
+              </div>
             </div>
-          </div>
-          <div className="flex-1 rounded border border-line-soft bg-paper px-3.5 py-2.5">
-            <div className="font-mono text-[14.5px] tracking-wide text-ink-muted uppercase">
-              支出合計
+            <div className="rounded border border-line-soft bg-paper px-3.5 py-2.5">
+              <div className="font-mono text-[14.5px] tracking-wide text-ink-muted uppercase">
+                収支差額
+              </div>
+              <div className="mt-0.5 font-mono text-lg text-ink tabular-nums">
+                {formatYen(summary.balance)}
+              </div>
             </div>
-            <div className="mt-0.5 font-mono text-lg text-expense tabular-nums">
-              {formatYen(summary.expense_total)}
-            </div>
-          </div>
-          <div className="flex-1 rounded border border-line-soft bg-paper px-3.5 py-2.5">
-            <div className="font-mono text-[14.5px] tracking-wide text-ink-muted uppercase">
-              収支差額
-            </div>
-            <div className="mt-0.5 font-mono text-lg text-ink tabular-nums">
-              {formatYen(summary.balance)}
-            </div>
+          </>
+        )}
+
+        <div className="col-span-2 min-w-0">
+          <div className="overflow-x-auto rounded border border-line-soft">
+            <table className="w-full text-[16.5px]">
+              <thead>
+                <tr>
+                  <th className="border-b border-line px-2.5 py-1.5 text-left font-mono text-[14.5px] text-ink-muted uppercase">
+                    日付
+                  </th>
+                  <th className="border-b border-line px-2.5 py-1.5 text-left font-mono text-[14.5px] text-ink-muted uppercase">
+                    カテゴリ
+                  </th>
+                  <th className="border-b border-line px-2.5 py-1.5 text-left font-mono text-[14.5px] text-ink-muted uppercase">
+                    資産
+                  </th>
+                  <th className="border-b border-line px-2.5 py-1.5 text-left font-mono text-[14.5px] text-ink-muted uppercase">
+                    メモ
+                  </th>
+                  <th className="border-b border-line px-2.5 py-1.5 text-right font-mono text-[14.5px] text-ink-muted uppercase">
+                    金額
+                  </th>
+                  <th className="border-b border-line px-2.5 py-1.5"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {transactions.map((transaction) => (
+                  <tr
+                    key={transaction.id}
+                    className="cursor-pointer hover:bg-tag-bg/40"
+                    onClick={() => setFormModal({ mode: 'edit', transaction })}
+                  >
+                    <td className="border-b border-line-soft px-2.5 py-2">
+                      {formatDate(transaction.date)}
+                    </td>
+                    <td className="border-b border-line-soft px-2.5 py-2">
+                      {categoryPill(transaction)}
+                    </td>
+                    <td className="border-b border-line-soft px-2.5 py-2">
+                      {assetsById.get(transaction.asset_id)?.name ?? ''}
+                    </td>
+                    <td className="border-b border-line-soft px-2.5 py-2 text-ink-muted">
+                      {transaction.memo}
+                    </td>
+                    <td
+                      className={
+                        transaction.entry_kind === 'income'
+                          ? 'border-b border-line-soft px-2.5 py-2 text-right font-mono text-income tabular-nums'
+                          : transaction.entry_kind === 'expense'
+                            ? 'border-b border-line-soft px-2.5 py-2 text-right font-mono text-expense tabular-nums'
+                            : 'border-b border-line-soft px-2.5 py-2 text-right font-mono text-ink tabular-nums'
+                      }
+                    >
+                      {transaction.entry_kind === 'income'
+                        ? '+'
+                        : transaction.entry_kind === 'expense'
+                          ? '-'
+                          : ''}
+                      {formatYen(transaction.amount)}
+                    </td>
+                    <td className="border-b border-line-soft px-2.5 py-2 text-center text-ink-muted">
+                      ⋯
+                    </td>
+                  </tr>
+                ))}
+                {transactions.length === 0 && !loading && (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="px-2.5 py-4 text-center text-ink-muted"
+                    >
+                      この月の取引はありません
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
-      )}
 
-      <div className="overflow-x-auto rounded border border-line-soft">
-        <table className="w-full text-[16.5px]">
-          <thead>
-            <tr>
-              <th className="border-b border-line px-2.5 py-1.5 text-left font-mono text-[14.5px] text-ink-muted uppercase">
-                日付
-              </th>
-              <th className="border-b border-line px-2.5 py-1.5 text-left font-mono text-[14.5px] text-ink-muted uppercase">
-                カテゴリ
-              </th>
-              <th className="border-b border-line px-2.5 py-1.5 text-left font-mono text-[14.5px] text-ink-muted uppercase">
-                資産
-              </th>
-              <th className="border-b border-line px-2.5 py-1.5 text-left font-mono text-[14.5px] text-ink-muted uppercase">
-                メモ
-              </th>
-              <th className="border-b border-line px-2.5 py-1.5 text-right font-mono text-[14.5px] text-ink-muted uppercase">
-                金額
-              </th>
-              <th className="border-b border-line px-2.5 py-1.5"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {transactions.map((transaction) => (
-              <tr
-                key={transaction.id}
-                className="cursor-pointer hover:bg-tag-bg/40"
-                onClick={() => setFormModal({ mode: 'edit', transaction })}
-              >
-                <td className="border-b border-line-soft px-2.5 py-2">
-                  {formatDate(transaction.date)}
-                </td>
-                <td className="border-b border-line-soft px-2.5 py-2">
-                  {categoryPill(transaction)}
-                </td>
-                <td className="border-b border-line-soft px-2.5 py-2">
-                  {assetsById.get(transaction.asset_id)?.name ?? ''}
-                </td>
-                <td className="border-b border-line-soft px-2.5 py-2 text-ink-muted">
-                  {transaction.memo}
-                </td>
-                <td
-                  className={
-                    transaction.entry_kind === 'income'
-                      ? 'border-b border-line-soft px-2.5 py-2 text-right font-mono text-income tabular-nums'
-                      : transaction.entry_kind === 'expense'
-                        ? 'border-b border-line-soft px-2.5 py-2 text-right font-mono text-expense tabular-nums'
-                        : 'border-b border-line-soft px-2.5 py-2 text-right font-mono text-ink tabular-nums'
-                  }
-                >
-                  {transaction.entry_kind === 'income'
-                    ? '+'
-                    : transaction.entry_kind === 'expense'
-                      ? '-'
-                      : ''}
-                  {formatYen(transaction.amount)}
-                </td>
-                <td className="border-b border-line-soft px-2.5 py-2 text-center text-ink-muted">
-                  ⋯
-                </td>
-              </tr>
-            ))}
-            {transactions.length === 0 && !loading && (
-              <tr>
-                <td
-                  colSpan={6}
-                  className="px-2.5 py-4 text-center text-ink-muted"
-                >
-                  この月の取引はありません
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+        <div className="min-w-0 rounded border border-line-soft p-4">
+          <div className="mb-3 text-[17.5px] font-semibold text-ink">
+            カテゴリ別支出
+          </div>
+          <CategoryDonutCard
+            label={`${year}年${month}月`}
+            breakdown={categoryBreakdown}
+          />
+        </div>
       </div>
 
       <button
