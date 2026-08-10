@@ -237,11 +237,13 @@ erDiagram
 | asset_id | INT | NOT NULL, FK → assets.id | 紐づく資産 |
 | day_of_month | INT | NOT NULL | 毎月何日に取引として登録するか(1〜31。月末日が存在しない月は月末日に登録する) |
 | memo | VARCHAR(255) | NULL | メモ |
+| last_generated_date | DATE | NULL | 直近で自動登録した取引の日付。同一日への重複登録を防ぐための状態管理カラム |
 | created_at | DATETIME | NOT NULL | 登録日 |
 | updated_at | DATETIME | NOT NULL | 更新日時 |
 
 - 頻度は「毎月」のみ対応(要件定義書 3.3参照)のため`frequency`カラムは持たず、`day_of_month`で表現する
-- 該当日になったら`transactions`へ`entry_type='normal'`の取引を1件自動登録する(登録済みかどうかの判定方法・バッチ実行方式はMVP実装時に確定する)
+- 該当日になったら`transactions`へ`entry_type='normal'`の取引を1件自動登録し、`last_generated_date`を更新することで重複登録を防ぐ
+- `entry_kind`はDBレベルでは`transactions`と共有のENUM型(`income`/`expense`/`transfer`)だが、`recurring_transactions`ではアプリケーション層(Pydanticバリデーション)で`income`/`expense`のみに制限している(定期取引に振替は存在しないため)
 
 ## 4. API設計
 
@@ -344,6 +346,23 @@ erDiagram
 ```
 
 レスポンスは差額から自動生成された`entry_type=adjustment`の取引と、更新後の資産情報を返す。
+
+**POST `/api/transactions`(資産間振替の例)**
+
+振替専用のエンドポイントは持たず、`entry_kind="transfer"`を指定して`/api/transactions`に登録する。
+
+```json
+{
+  "date": "2026-08-05",
+  "amount": 30000,
+  "entry_kind": "transfer",
+  "asset_id": 1,
+  "transfer_to_asset_id": 2,
+  "memo": "普通預金から現金へ"
+}
+```
+
+カテゴリ(大カテゴリ・支出中カテゴリ・収入カテゴリ)はすべてNULLとなり、移動元(`asset_id`)の残高を減算・移動先(`transfer_to_asset_id`)の残高を加算する。月別収支サマリ・カテゴリ別集計には含めない。
 
 ## 5. ディレクトリ構成
 
