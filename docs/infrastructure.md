@@ -1,13 +1,5 @@
 # インフラ構成書(AWS / Terraform)
 
-## 改訂履歴
-
-| 日付 | 内容 |
-|------|------|
-| 2026-08-10 | 初版作成。EC2/RDSの構築、backend/frontendの自動デプロイまでを実装 |
-
----
-
 ## 1. 概要
 
 HouseholdBudgetアプリを、AWS上にTerraformで構築する。以下を前提とする。
@@ -75,7 +67,7 @@ terraform/
 
 `ec2.tf`で`templatefile()`を使い、RDSの接続情報(`database_url`、SQLAlchemy形式)とリポジトリ情報(`repo_url`/`repo_ref`)をスクリプトに埋め込み、EC2起動時の`user_data`として実行する。主な処理は以下の順序。
 
-1. **ミドルウェア導入**: `dnf`で`nodejs22`・`nginx`・`git`を導入し、nginxを起動
+1. **ミドルウェア導入**: `dnf`で`nodejs22`・`nodejs22-npm`・`nginx`・`git`を導入し、nginxを起動
 2. **swap追加**: `t3.micro`(メモリ1GB)での`npm run build`/Alembic実行時のメモリ不足対策として1GBのswapファイルを作成
 3. **uv導入**: Amazon Linux 2023のdnfリポジトリがPython 3.12を提供していない可能性があるため、`uv`のスタンドアロンインストーラを使い、dnfのシステムPythonに依存せず`uv`にPython 3.12自体を管理させる
 4. **アプリ取得**: `git clone --branch <repo_ref> --depth 1 <repo_url>`でpublicリポジトリを取得(認証情報不要)

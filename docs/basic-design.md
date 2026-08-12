@@ -47,6 +47,7 @@ FastAPIは型ヒントベースのバリデーション・自動API仕様書生�
 | フレームワーク | Next.js(App Router) |
 | 言語 | TypeScript |
 | レンダリング方式 | クライアントサイドレンダリング(CSR)中心。Next.js固有のSSR・Server Components・Server Actionsは使用せず、FastAPIのAPIをブラウザから直接呼び出すSPAとして構成する |
+| グラフ描画 | recharts(カテゴリ別支出・資産推移のグラフ表示に使用) |
 | パッケージ管理 | npm |
 
 Next.jsはフロントエンド求人での需要が高く学習価値が大きいため採用する。ただしSSR等のサーバー側機能は
@@ -195,7 +196,7 @@ erDiagram
 | id | INT | PK, AUTO_INCREMENT | |
 | name | VARCHAR(50) | NOT NULL | 資産名(例: 三井住友銀行) |
 | type | ENUM('bank','cash','credit_card') | NOT NULL | 資産種別 |
-| balance | DECIMAL(12,0) | NOT NULL, DEFAULT 0 | 現在残高(円単位、小数は扱わない) |
+| balance | DECIMAL(12,0) | NOT NULL | 現在残高(円単位、小数は扱わない)。新規登録時のデフォルト0はアプリケーション層(ORM)で保証し、DBレベルのDEFAULT制約は設けない |
 | sort_order | INT | NOT NULL | 表示順 |
 
 - `balance`は取引の登録・編集・削除のたびにアプリケーション側で再計算・更新する非正規化カラム(毎回集計するのではなく、表示速度を優先する)
@@ -210,8 +211,8 @@ erDiagram
 | entry_kind | ENUM('income','expense','transfer') | NOT NULL | 収入/支出/振替区分 |
 | entry_type | ENUM('normal','adjustment') | NOT NULL, DEFAULT 'normal' | 登録種別(通常入力/資産残高調整による自動登録) |
 | major_category_id | INT | NULL, FK → major_categories.id | 大カテゴリ(`entry_kind='expense'`時のみ設定) |
-| expense_category_id | INT | NULL, FK → expense_categories.id | 支出中カテゴリ(`entry_kind='expense'`時のみ設定) |
-| income_category_id | INT | NULL, FK → income_categories.id | 収入カテゴリ(`entry_kind='income'`時のみ設定) |
+| expense_category_id | INT | NULL, FK → expense_categories.id, ON DELETE SET NULL | 支出中カテゴリ(`entry_kind='expense'`時のみ設定)。カテゴリ削除時は当該取引のカテゴリをNULLにする |
+| income_category_id | INT | NULL, FK → income_categories.id, ON DELETE SET NULL | 収入カテゴリ(`entry_kind='income'`時のみ設定)。カテゴリ削除時は当該取引のカテゴリをNULLにする |
 | asset_id | INT | NOT NULL, FK → assets.id | 紐づく資産(振替の場合は移動元) |
 | transfer_to_asset_id | INT | NULL, FK → assets.id | 振替の移動先資産(`entry_kind='transfer'`時のみ設定) |
 | memo | VARCHAR(255) | NULL | メモ |
@@ -232,8 +233,8 @@ erDiagram
 | amount | DECIMAL(12,0) | NOT NULL | 金額 |
 | entry_kind | ENUM('income','expense') | NOT NULL | 収入/支出区分 |
 | major_category_id | INT | NULL, FK → major_categories.id | 大カテゴリ(支出時のみ) |
-| expense_category_id | INT | NULL, FK → expense_categories.id | 支出中カテゴリ(支出時のみ) |
-| income_category_id | INT | NULL, FK → income_categories.id | 収入カテゴリ(収入時のみ) |
+| expense_category_id | INT | NULL, FK → expense_categories.id, ON DELETE SET NULL | 支出中カテゴリ(支出時のみ)。カテゴリ削除時は当該定期取引のカテゴリをNULLにする |
+| income_category_id | INT | NULL, FK → income_categories.id, ON DELETE SET NULL | 収入カテゴリ(収入時のみ)。カテゴリ削除時は当該定期取引のカテゴリをNULLにする |
 | asset_id | INT | NOT NULL, FK → assets.id | 紐づく資産 |
 | day_of_month | INT | NOT NULL | 毎月何日に取引として登録するか(1〜31。月末日が存在しない月は月末日に登録する) |
 | memo | VARCHAR(255) | NULL | メモ |
@@ -262,8 +263,8 @@ erDiagram
 
 | メソッド | パス | 概要 |
 |---------|------|------|
-| GET | `/api/transactions` | 取引一覧取得(`year`・`month`クエリで月別絞り込み) |
-| POST | `/api/transactions` | 取引の新規登録 |
+| GET | `/api/transactions` | 取引一覧取得(`year`・`month`クエリ必須で月別絞り込み) |
+| POST | `/api/transactions` | 取引の新規登録(通常の収入/支出のほか、`entry_kind=transfer`で資産間振替も登録) |
 | PUT | `/api/transactions/{id}` | 取引の編集 |
 | DELETE | `/api/transactions/{id}` | 取引の削除 |
 | GET | `/api/summary/monthly` | 月別収支サマリ取得(`year`・`month`クエリ必須) |
@@ -285,6 +286,7 @@ erDiagram
 | GET | `/api/income-categories` | 収入カテゴリ一覧取得 |
 | POST | `/api/income-categories` | 収入カテゴリの新規登録 |
 | DELETE | `/api/income-categories/{id}` | 収入カテゴリの削除 |
+| GET | `/api/health` | ヘルスチェック |
 
 ### 4.3 リクエスト/レスポンス例
 

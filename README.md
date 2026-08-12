@@ -91,7 +91,7 @@ npm run dev
 
 | メソッド | パス | 概要 |
 |---------|------|------|
-| GET | `/api/transactions` | 取引一覧取得(`year`・`month`クエリで月別絞り込み) |
+| GET | `/api/transactions` | 取引一覧取得(`year`・`month`クエリ必須で月別絞り込み) |
 | POST | `/api/transactions` | 取引の新規登録(通常の収入/支出のほか、`entry_kind=transfer`で資産間振替も登録) |
 | PUT | `/api/transactions/{id}` | 取引の編集 |
 | DELETE | `/api/transactions/{id}` | 取引の削除 |
@@ -114,6 +114,7 @@ npm run dev
 | GET | `/api/income-categories` | 収入カテゴリ一覧取得 |
 | POST | `/api/income-categories` | 収入カテゴリの新規登録 |
 | DELETE | `/api/income-categories/{id}` | 収入カテゴリの削除 |
+| GET | `/api/health` | ヘルスチェック |
 
 詳細(リクエスト・レスポンス例など)は [docs/basic-design.md 4章](docs/basic-design.md#4-api設計) を参照。
 
