@@ -15,6 +15,46 @@
 
 <!-- TODO: アプリの動作確認用スクリーンショット・画面録画をここに貼り付ける -->
 
+## 画面と使い方
+
+左側のメニューから4つの画面を切り替えて操作する。
+
+### TRANSACTIONS(取引)
+
+![取引一覧画面](docs/images/screen-transactions.png)
+
+月別の取引一覧画面。ヘッダーの `<` `>` で表示月を切り替えられる。上部に当月の収入合計・支出合計・収支差額、右側にカテゴリ別支出の内訳グラフを表示する。右下の `+` ボタンから取引を追加できる。
+
+![取引を追加モーダル](docs/images/modal-transaction-add.png)
+
+取引追加時は、区分(支出・収入・振替)、日付、大カテゴリ・中カテゴリ、資産、金額、メモを入力する。「振替」を選ぶと資産間の残高移動として登録され、収支には計上されない。一覧の各行の「…」からは編集・削除ができる。
+
+### ASSETS(資産)
+
+![資産一覧画面](docs/images/screen-assets.png)
+
+登録済みの資産(銀行口座・現金・クレジットカードなど)と残高の一覧、合計資産額を表示する。「資産を追加」から新しい資産を登録できる。
+
+![資産の新規登録モーダル](docs/images/modal-asset-add.png)
+
+資産名・種別・初期残高を入力して登録する。登録済みの資産は「編集」で内容変更、「削除」で削除、「残高調整」で実際の残高との差額を調整取引として自動登録できる(例: 実残高と記録上の残高がずれた場合に、差額分の取引を手入力せずに一致させる)。
+
+### RECURRING(定期取引)
+
+![定期取引一覧画面](docs/images/screen-recurring.png)
+
+家賃・給与・水道光熱費など毎月発生する取引をあらかじめ登録しておく画面。登録しておくと該当日に自動で取引として登録される。「定期取引を追加」から新規登録できる。
+
+![定期取引を追加モーダル](docs/images/modal-recurring-add.png)
+
+区分(支出・収入)、登録日(毎月何日に発生するか)、大カテゴリ・中カテゴリ、資産、金額、メモを入力する。中カテゴリは選択済みのタグをタップで選択、`×`で削除、「+ 新規カテゴリ」で追加できる。一覧の鉛筆アイコンから編集できる。
+
+### REPORTS(レポート)
+
+![レポート画面](docs/images/screen-reports.png)
+
+カテゴリ別支出(前後の月と並べて比較でき、`<` `>` で表示月をスライド)、資産全体の残高推移(3ヶ月・6ヶ月・1年・全期間で切り替え)をグラフで確認できる。
+
 ## ドキュメント
 
 | ドキュメント | 内容 |
@@ -89,34 +129,7 @@ npm run dev
 
 ## API
 
-| メソッド | パス | 概要 |
-|---------|------|------|
-| GET | `/api/transactions` | 取引一覧取得(`year`・`month`クエリ必須で月別絞り込み) |
-| POST | `/api/transactions` | 取引の新規登録(通常の収入/支出のほか、`entry_kind=transfer`で資産間振替も登録) |
-| PUT | `/api/transactions/{id}` | 取引の編集 |
-| DELETE | `/api/transactions/{id}` | 取引の削除 |
-| GET | `/api/summary/monthly` | 月別収支サマリ取得 |
-| GET | `/api/reports/category-breakdown` | 月別・大カテゴリ別支出集計取得 |
-| GET | `/api/reports/asset-trend` | 資産全体の残高推移取得(3ヶ月・6ヶ月・1年・全期間から期間切替、日単位) |
-| GET | `/api/assets` | 資産一覧取得(残高・合計資産額を含む) |
-| POST | `/api/assets` | 資産の新規登録 |
-| PUT | `/api/assets/{id}` | 資産の編集 |
-| DELETE | `/api/assets/{id}` | 資産の削除 |
-| POST | `/api/assets/{id}/adjust` | 資産残高調整(実際の残高との差額を調整取引として自動登録) |
-| GET | `/api/recurring-transactions` | 定期取引一覧取得 |
-| POST | `/api/recurring-transactions` | 定期取引の新規登録 |
-| PUT | `/api/recurring-transactions/{id}` | 定期取引の編集 |
-| DELETE | `/api/recurring-transactions/{id}` | 定期取引の削除 |
-| GET | `/api/major-categories` | 支出大カテゴリ一覧取得(固定4件、参照のみ) |
-| GET | `/api/expense-categories` | 支出中カテゴリ一覧取得 |
-| POST | `/api/expense-categories` | 支出中カテゴリの新規登録 |
-| DELETE | `/api/expense-categories/{id}` | 支出中カテゴリの削除 |
-| GET | `/api/income-categories` | 収入カテゴリ一覧取得 |
-| POST | `/api/income-categories` | 収入カテゴリの新規登録 |
-| DELETE | `/api/income-categories/{id}` | 収入カテゴリの削除 |
-| GET | `/api/health` | ヘルスチェック |
-
-詳細(リクエスト・レスポンス例など)は [docs/basic-design.md 4章](docs/basic-design.md#4-api設計) を参照。
+APIのエンドポイント一覧・リクエスト/レスポンス例は [docs/basic-design.md 4章](docs/basic-design.md#4-api設計) を参照。起動中は Swagger UI(`http://localhost:8000/docs`)でも同じ内容を確認・実行できる。
 
 ## 開発ルール
 
