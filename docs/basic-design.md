@@ -138,7 +138,6 @@ erDiagram
     }
     recurring_transactions {
         int id PK
-        string name
         decimal amount
         enum entry_kind
         int major_category_id FK
@@ -229,7 +228,6 @@ erDiagram
 | カラム名 | 型 | 制約 | 内容 |
 |---------|-----|------|------|
 | id | INT | PK, AUTO_INCREMENT | |
-| name | VARCHAR(50) | NOT NULL | 定期取引名(例: 家賃) |
 | amount | DECIMAL(12,0) | NOT NULL | 金額 |
 | entry_kind | ENUM('income','expense') | NOT NULL | 収入/支出区分 |
 | major_category_id | INT | NULL, FK → major_categories.id | 大カテゴリ(支出時のみ) |
@@ -269,7 +267,7 @@ erDiagram
 | DELETE | `/api/transactions/{id}` | 取引の削除 |
 | GET | `/api/summary/monthly` | 月別収支サマリ取得(`year`・`month`クエリ必須) |
 | GET | `/api/reports/category-breakdown` | 月別・大カテゴリ別支出集計取得(`year`・`month`クエリ必須) |
-| GET | `/api/reports/asset-trend` | 資産全体の残高推移取得(`months`クエリで期間切替、3・6・12から指定) |
+| GET | `/api/reports/asset-trend` | 資産全体の残高推移取得(`period`クエリで期間切替、`3m`・`6m`・`1y`・`all`から指定。日単位のデータ点を返す) |
 | GET | `/api/assets` | 資産一覧取得(残高・合計資産額を含む) |
 | POST | `/api/assets` | 資産の新規登録 |
 | PUT | `/api/assets/{id}` | 資産の編集 |
