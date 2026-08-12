@@ -17,7 +17,7 @@ def test_list_major_categories(client: TestClient) -> None:
 def test_list_expense_categories(client: TestClient) -> None:
     response = client.get("/api/expense-categories")
     assert response.status_code == 200
-    assert len(response.json()) == 9
+    assert len(response.json()) == 10
 
 
 def test_create_expense_category(client: TestClient, db_session: Session) -> None:

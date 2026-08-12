@@ -20,4 +20,4 @@ export type AssetTrendResponse = {
   items: AssetTrendPoint[];
 };
 
-export type AssetTrendMonths = 3 | 6 | 12;
+export type AssetTrendPeriod = '3m' | '6m' | '1y' | 'all';

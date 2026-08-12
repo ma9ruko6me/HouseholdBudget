@@ -102,7 +102,7 @@ export default function RecurringTransactionsPage() {
       const income = incomeCategoriesById.get(
         recurring.income_category_id,
       )?.name;
-      return { major: '', mid: income ?? '' };
+      return { major: '収入', mid: income ?? '' };
     }
     return { major: '', mid: '' };
   };
@@ -128,6 +128,9 @@ export default function RecurringTransactionsPage() {
               </th>
               <th className="border-b border-line px-2.5 py-1.5 text-left font-mono text-[14.5px] text-ink-muted uppercase">
                 資産
+              </th>
+              <th className="border-b border-line px-2.5 py-1.5 text-left font-mono text-[14.5px] text-ink-muted uppercase">
+                メモ
               </th>
               <th className="border-b border-line px-2.5 py-1.5 text-left font-mono text-[14.5px] text-ink-muted uppercase">
                 頻度
@@ -159,10 +162,13 @@ export default function RecurringTransactionsPage() {
                     {major}
                   </td>
                   <td className="border-b border-line-soft px-2.5 py-2">
-                    {mid || recurring.name}
+                    {mid}
                   </td>
                   <td className="border-b border-line-soft px-2.5 py-2">
                     {assetsById.get(recurring.asset_id)?.name ?? ''}
+                  </td>
+                  <td className="border-b border-line-soft px-2.5 py-2 text-ink-muted">
+                    {recurring.memo}
                   </td>
                   <td className="border-b border-line-soft px-2.5 py-2 text-ink-muted">
                     毎月
@@ -189,7 +195,7 @@ export default function RecurringTransactionsPage() {
             {recurringTransactions.length === 0 && !loading && (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={8}
                   className="px-2.5 py-4 text-center text-ink-muted"
                 >
                   定期取引は登録されていません

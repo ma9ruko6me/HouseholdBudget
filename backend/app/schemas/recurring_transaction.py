@@ -8,7 +8,6 @@ class RecurringTransactionRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    name: str
     amount: Decimal
     entry_kind: str
     major_category_id: int | None
@@ -25,7 +24,6 @@ class RecurringTransactionListRead(BaseModel):
 
 
 class _RecurringTransactionFields(BaseModel):
-    name: str = Field(min_length=1, max_length=50)
     amount: Decimal = Field(gt=0)
     entry_kind: str
     major_category_id: int | None = None

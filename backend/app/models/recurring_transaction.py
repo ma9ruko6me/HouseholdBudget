@@ -12,7 +12,6 @@ class RecurringTransaction(Base):
     __tablename__ = "recurring_transactions"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(50), nullable=False)
     amount: Mapped[Decimal] = mapped_column(DECIMAL(12, 0), nullable=False)
     entry_kind: Mapped[str] = mapped_column(EntryKind, nullable=False)
     major_category_id: Mapped[int | None] = mapped_column(

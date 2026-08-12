@@ -14,12 +14,17 @@ import { CategoryDonutCard } from '@/components/CategoryDonutCard';
 import { formatYen } from '@/lib/format';
 import { reportsApi } from '@/lib/reports';
 import type {
-  AssetTrendMonths,
+  AssetTrendPeriod,
   AssetTrendResponse,
   CategoryBreakdownResponse,
 } from '@/types/report';
 
-const TREND_PERIODS: AssetTrendMonths[] = [3, 6, 12];
+const TREND_PERIODS: { value: AssetTrendPeriod; label: string }[] = [
+  { value: '3m', label: '3ヶ月' },
+  { value: '6m', label: '6ヶ月' },
+  { value: '1y', label: '1年' },
+  { value: 'all', label: '全期間' },
+];
 
 type MonthKey = { year: number; month: number };
 
@@ -46,7 +51,7 @@ export default function ReportsPage() {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
-  const [trendMonths, setTrendMonths] = useState<AssetTrendMonths>(6);
+  const [trendPeriod, setTrendPeriod] = useState<AssetTrendPeriod>('6m');
 
   const [breakdowns, setBreakdowns] = useState<
     (CategoryBreakdownResponse | null)[]
@@ -77,14 +82,14 @@ export default function ReportsPage() {
 
   const loadTrend = useCallback(async () => {
     try {
-      const result = await reportsApi.assetTrend(trendMonths);
+      const result = await reportsApi.assetTrend(trendPeriod);
       setTrend(result);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : '資産推移の取得に失敗しました',
       );
     }
-  }, [trendMonths]);
+  }, [trendPeriod]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- 月切り替え時のデータ再取得
@@ -182,16 +187,16 @@ export default function ReportsPage() {
             <div className="flex gap-1.5 font-mono text-[15.5px]">
               {TREND_PERIODS.map((p) => (
                 <button
-                  key={p}
+                  key={p.value}
                   type="button"
                   className={
-                    p === trendMonths
+                    p.value === trendPeriod
                       ? 'rounded border border-accent bg-accent px-2.5 py-1 text-paper'
                       : 'rounded border border-line px-2.5 py-1 text-ink-muted'
                   }
-                  onClick={() => setTrendMonths(p)}
+                  onClick={() => setTrendPeriod(p.value)}
                 >
-                  {p === 12 ? '1年' : `${p}ヶ月`}
+                  {p.label}
                 </button>
               ))}
             </div>

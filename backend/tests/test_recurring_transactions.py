@@ -35,7 +35,6 @@ def test_create_recurring_transaction(client: TestClient, db_session: Session) -
     response = client.post(
         "/api/recurring-transactions",
         json={
-            "name": "家賃",
             "amount": "78000",
             "entry_kind": "expense",
             "major_category_id": expense_category.major_category_id,
@@ -47,7 +46,6 @@ def test_create_recurring_transaction(client: TestClient, db_session: Session) -
 
     assert response.status_code == 201
     body = response.json()
-    assert body["name"] == "家賃"
     assert body["day_of_month"] == 27
     assert body["last_generated_date"] is None
 
@@ -61,7 +59,6 @@ def test_create_recurring_transaction_invalid_day_returns_422(
     response = client.post(
         "/api/recurring-transactions",
         json={
-            "name": "給与",
             "amount": "300000",
             "entry_kind": "income",
             "income_category_id": income_category_id,
@@ -77,7 +74,6 @@ def test_update_recurring_transaction(client: TestClient, db_session: Session) -
     asset = _create_asset(db_session)
     income_category_id = _income_category_id(db_session)
     recurring = RecurringTransaction(
-        name="給与",
         amount=300000,
         entry_kind="income",
         income_category_id=income_category_id,
@@ -90,7 +86,6 @@ def test_update_recurring_transaction(client: TestClient, db_session: Session) -
     response = client.put(
         f"/api/recurring-transactions/{recurring.id}",
         json={
-            "name": "給与(改)",
             "amount": "310000",
             "entry_kind": "income",
             "income_category_id": income_category_id,
@@ -100,7 +95,6 @@ def test_update_recurring_transaction(client: TestClient, db_session: Session) -
     )
 
     assert response.status_code == 200
-    assert response.json()["name"] == "給与(改)"
     assert response.json()["amount"] == "310000"
 
 
@@ -113,7 +107,6 @@ def test_update_recurring_transaction_not_found_returns_404(
     response = client.put(
         "/api/recurring-transactions/999999",
         json={
-            "name": "給与",
             "amount": "300000",
             "entry_kind": "income",
             "income_category_id": income_category_id,
@@ -129,7 +122,6 @@ def test_delete_recurring_transaction(client: TestClient, db_session: Session) -
     asset = _create_asset(db_session)
     income_category_id = _income_category_id(db_session)
     recurring = RecurringTransaction(
-        name="給与",
         amount=300000,
         entry_kind="income",
         income_category_id=income_category_id,
@@ -156,7 +148,6 @@ def test_generate_due_transactions_creates_transaction_on_or_after_created_month
     asset = _create_asset(db_session, balance=10000)
     income_category_id = _income_category_id(db_session)
     recurring = RecurringTransaction(
-        name="給与",
         amount=300000,
         entry_kind="income",
         income_category_id=income_category_id,
@@ -187,7 +178,6 @@ def test_generate_due_transactions_does_not_generate_future_month(db_session: Se
     asset = _create_asset(db_session)
     income_category_id = _income_category_id(db_session)
     recurring = RecurringTransaction(
-        name="給与",
         amount=300000,
         entry_kind="income",
         income_category_id=income_category_id,
@@ -210,7 +200,6 @@ def test_generate_due_transactions_backfills_missed_months(db_session: Session) 
     asset = _create_asset(db_session, balance=0)
     expense_category = _expense_category(db_session)
     recurring = RecurringTransaction(
-        name="サブスク",
         amount=1000,
         entry_kind="expense",
         major_category_id=expense_category.major_category_id,
@@ -235,7 +224,6 @@ def test_generate_due_transactions_clamps_to_month_end(db_session: Session) -> N
     asset = _create_asset(db_session)
     expense_category = _expense_category(db_session)
     recurring = RecurringTransaction(
-        name="月末支払い",
         amount=500,
         entry_kind="expense",
         major_category_id=expense_category.major_category_id,
@@ -259,7 +247,6 @@ def test_generate_due_transactions_is_idempotent(db_session: Session) -> None:
     asset = _create_asset(db_session)
     income_category_id = _income_category_id(db_session)
     recurring = RecurringTransaction(
-        name="給与",
         amount=300000,
         entry_kind="income",
         income_category_id=income_category_id,
@@ -284,7 +271,6 @@ def test_deleting_recurring_transaction_keeps_generated_transactions(
     asset = _create_asset(db_session)
     income_category_id = _income_category_id(db_session)
     recurring = RecurringTransaction(
-        name="給与",
         amount=300000,
         entry_kind="income",
         income_category_id=income_category_id,
@@ -311,7 +297,6 @@ def test_list_transactions_endpoint_triggers_generation(
     asset = _create_asset(db_session)
     income_category_id = _income_category_id(db_session)
     recurring = RecurringTransaction(
-        name="給与",
         amount=300000,
         entry_kind="income",
         income_category_id=income_category_id,

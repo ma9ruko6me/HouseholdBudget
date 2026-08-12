@@ -42,7 +42,6 @@ def create_recurring_transaction(
     try:
         return recurring_crud.create_recurring_transaction(
             db,
-            name=payload.name,
             amount=payload.amount,
             entry_kind=payload.entry_kind,
             major_category_id=payload.major_category_id,
@@ -73,7 +72,6 @@ def update_recurring_transaction(
         return recurring_crud.update_recurring_transaction(
             db,
             recurring,
-            name=payload.name,
             amount=payload.amount,
             entry_kind=payload.entry_kind,
             major_category_id=payload.major_category_id,

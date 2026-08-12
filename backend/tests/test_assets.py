@@ -104,7 +104,6 @@ def test_delete_asset_referenced_by_recurring_transaction_returns_400(
 ) -> None:
     asset = _create_asset(db_session)
     recurring = RecurringTransaction(
-        name="家賃",
         amount=50000,
         entry_kind="expense",
         asset_id=asset.id,
