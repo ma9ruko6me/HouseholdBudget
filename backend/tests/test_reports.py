@@ -1,9 +1,9 @@
-import calendar
-from datetime import date
+from datetime import date, timedelta
 
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
+from app.crud.report import _months_before
 from app.models import Asset, ExpenseCategory, Transaction
 
 
@@ -23,18 +23,6 @@ def _expense_category(db_session: Session, major_category_id: int) -> ExpenseCat
     )
     assert category is not None
     return category
-
-
-def _month_end(year: int, month: int) -> date:
-    return date(year, month, calendar.monthrange(year, month)[1])
-
-
-def _shift_month(year: int, month: int, offset: int) -> tuple[int, int]:
-    month -= offset
-    while month <= 0:
-        month += 12
-        year -= 1
-    return year, month
 
 
 def test_category_breakdown_groups_expense_by_major_category(
@@ -114,21 +102,34 @@ def test_category_breakdown_empty_month_returns_empty_items(client: TestClient) 
     assert body["total"] == "0"
 
 
-def test_asset_trend_reconstructs_past_balances(client: TestClient, db_session: Session) -> None:
+def test_asset_trend_returns_one_point_per_day(client: TestClient) -> None:
     today = date.today()
-    prev_year, prev_month = _shift_month(today.year, today.month, 1)
-    prev_month_end = _month_end(prev_year, prev_month)
-    two_months_ago_year, two_months_ago_month = _shift_month(today.year, today.month, 2)
-    two_months_ago_end = _month_end(two_months_ago_year, two_months_ago_month)
+    start_date = _months_before(today, 3)
 
-    baseline = client.get("/api/reports/asset-trend", params={"months": 3}).json()["items"]
-    assert len(baseline) == 3
+    response = client.get("/api/reports/asset-trend", params={"period": "3m"})
+
+    assert response.status_code == 200
+    items = response.json()["items"]
+    assert len(items) == (today - start_date).days + 1
+    assert items[0]["date"] == start_date.isoformat()
+    assert items[-1]["date"] == today.isoformat()
+
+
+def test_asset_trend_reconstructs_daily_balances(client: TestClient, db_session: Session) -> None:
+    today = date.today()
+    yesterday = today - timedelta(days=1)
+    two_days_ago = today - timedelta(days=2)
+
+    baseline = {
+        p["date"]: int(p["total_balance"])
+        for p in client.get("/api/reports/asset-trend", params={"period": "3m"}).json()["items"]
+    }
 
     asset = _create_asset(db_session, balance=5000)
     db_session.add_all(
         [
             Transaction(
-                date=prev_month_end,
+                date=yesterday,
                 amount=2000,
                 entry_kind="expense",
                 entry_type="normal",
@@ -145,20 +146,42 @@ def test_asset_trend_reconstructs_past_balances(client: TestClient, db_session: 
     )
     db_session.commit()
 
-    after = client.get("/api/reports/asset-trend", params={"months": 3}).json()["items"]
+    after = {
+        p["date"]: int(p["total_balance"])
+        for p in client.get("/api/reports/asset-trend", params={"period": "3m"}).json()["items"]
+    }
 
-    assert [p["date"] for p in after] == [
-        two_months_ago_end.isoformat(),
-        prev_month_end.isoformat(),
-        today.isoformat(),
-    ]
-
-    deltas = [int(after[i]["total_balance"]) - int(baseline[i]["total_balance"]) for i in range(3)]
-    assert deltas == [6000, 4000, 5000]
+    assert after[two_days_ago.isoformat()] - baseline[two_days_ago.isoformat()] == 6000
+    assert after[yesterday.isoformat()] - baseline[yesterday.isoformat()] == 4000
+    assert after[today.isoformat()] - baseline[today.isoformat()] == 5000
 
 
-def test_asset_trend_rejects_unsupported_months(client: TestClient) -> None:
-    response = client.get("/api/reports/asset-trend", params={"months": 4})
+def test_asset_trend_all_period_starts_at_earliest_transaction(
+    client: TestClient, db_session: Session
+) -> None:
+    asset = _create_asset(db_session, balance=1000)
+    old_date = date(2020, 1, 15)
+    db_session.add(
+        Transaction(
+            date=old_date,
+            amount=500,
+            entry_kind="income",
+            entry_type="normal",
+            asset_id=asset.id,
+        )
+    )
+    db_session.commit()
+
+    response = client.get("/api/reports/asset-trend", params={"period": "all"})
+
+    assert response.status_code == 200
+    items = response.json()["items"]
+    assert items[0]["date"] <= old_date.isoformat()
+    assert items[-1]["date"] == date.today().isoformat()
+
+
+def test_asset_trend_rejects_unsupported_period(client: TestClient) -> None:
+    response = client.get("/api/reports/asset-trend", params={"period": "5m"})
 
     assert response.status_code == 400
 

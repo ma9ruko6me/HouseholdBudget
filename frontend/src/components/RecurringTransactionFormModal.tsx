@@ -40,7 +40,6 @@ export function RecurringTransactionFormModal({
   onCategoriesChanged,
   onClose,
 }: Props) {
-  const [name, setName] = useState(initialRecurringTransaction?.name ?? '');
   const [entryKind, setEntryKind] = useState<EntryKind>(
     initialRecurringTransaction?.entry_kind ?? 'expense',
   );
@@ -157,7 +156,6 @@ export function RecurringTransactionFormModal({
     setSubmitting(true);
     try {
       await onSubmit({
-        name,
         amount,
         entry_kind: entryKind,
         major_category_id: entryKind === 'expense' ? majorCategoryId : null,
@@ -195,19 +193,6 @@ export function RecurringTransactionFormModal({
           {mode === 'create' ? '定期取引を追加' : '定期取引を編集'}
         </h3>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <div className="flex flex-col gap-1">
-            <label className="font-mono text-[14.5px] tracking-wide text-ink-muted uppercase">
-              名称
-            </label>
-            <input
-              className="rounded border border-line bg-paper px-2.5 py-1.5 text-sm text-ink"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              maxLength={50}
-              required
-            />
-          </div>
-
           <div className="flex gap-3">
             <div className="flex flex-col gap-1">
               <label className="font-mono text-[14.5px] tracking-wide text-ink-muted uppercase">

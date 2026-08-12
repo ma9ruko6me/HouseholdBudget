@@ -23,7 +23,6 @@ def get_recurring_transaction(
 
 def create_recurring_transaction(
     db: Session,
-    name: str,
     amount: Decimal,
     entry_kind: str,
     major_category_id: int | None,
@@ -34,7 +33,6 @@ def create_recurring_transaction(
     memo: str | None,
 ) -> RecurringTransaction:
     recurring = RecurringTransaction(
-        name=name,
         amount=amount,
         entry_kind=entry_kind,
         major_category_id=major_category_id,
@@ -53,7 +51,6 @@ def create_recurring_transaction(
 def update_recurring_transaction(
     db: Session,
     recurring: RecurringTransaction,
-    name: str,
     amount: Decimal,
     entry_kind: str,
     major_category_id: int | None,
@@ -63,7 +60,6 @@ def update_recurring_transaction(
     day_of_month: int,
     memo: str | None,
 ) -> RecurringTransaction:
-    recurring.name = name
     recurring.amount = amount
     recurring.entry_kind = entry_kind
     recurring.major_category_id = major_category_id

@@ -1,6 +1,6 @@
 import { api } from '@/lib/api';
 import type {
-  AssetTrendMonths,
+  AssetTrendPeriod,
   AssetTrendResponse,
   CategoryBreakdownResponse,
 } from '@/types/report';
@@ -11,6 +11,6 @@ export const reportsApi = {
       year,
       month,
     }),
-  assetTrend: (months: AssetTrendMonths) =>
-    api.get<AssetTrendResponse>('/reports/asset-trend', { months }),
+  assetTrend: (period: AssetTrendPeriod) =>
+    api.get<AssetTrendResponse>('/reports/asset-trend', { period }),
 };

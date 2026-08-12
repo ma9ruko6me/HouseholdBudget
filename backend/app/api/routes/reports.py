@@ -5,7 +5,7 @@ from app.crud import report as report_crud
 from app.db.session import get_db
 from app.schemas.report import AssetTrendRead, CategoryBreakdownRead
 
-ALLOWED_TREND_MONTHS = (3, 6, 12)
+ALLOWED_TREND_PERIODS = ("3m", "6m", "1y", "all")
 
 router = APIRouter()
 
@@ -23,13 +23,13 @@ def get_category_breakdown(
 
 @router.get("/reports/asset-trend", response_model=AssetTrendRead)
 def get_asset_trend(
-    months: int = Query(...),
+    period: str = Query(...),
     db: Session = Depends(get_db),
 ) -> AssetTrendRead:
-    if months not in ALLOWED_TREND_MONTHS:
+    if period not in ALLOWED_TREND_PERIODS:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="monthsは3・6・12のいずれかを指定してください",
+            detail="periodは3m・6m・1y・allのいずれかを指定してください",
         )
-    items = report_crud.get_asset_trend(db, months)
+    items = report_crud.get_asset_trend(db, period)
     return AssetTrendRead(items=items)

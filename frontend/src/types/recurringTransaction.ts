@@ -2,7 +2,6 @@ import type { EntryKind } from '@/types/transaction';
 
 export type RecurringTransaction = {
   id: number;
-  name: string;
   amount: string;
   entry_kind: EntryKind;
   major_category_id: number | null;
@@ -19,7 +18,6 @@ export type RecurringTransactionList = {
 };
 
 export type RecurringTransactionInput = {
-  name: string;
   amount: string;
   entry_kind: EntryKind;
   major_category_id: number | null;
